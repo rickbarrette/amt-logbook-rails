@@ -1,0 +1,56 @@
+# Production stack for Portainer (or plain docker compose) behind Traefik,
+# with Authentik forward auth in front. Everything site-specific comes from
+# environment variables, which you set in Portainer's stack editor
+# ("Environment variables") or in a .env next to this file:
+#
+#   APP_HOST=logbook.example.com          # public hostname (required)
+#   SECRET_KEY_BASE=...                   # bin/rails secret (required; keep it: it seals signatures
+#                                         # and encrypts authenticator secrets)
+#   SMTP_ADDRESS / SMTP_PORT / SMTP_USERNAME / SMTP_PASSWORD / MAIL_FROM   # optional email
+#   TRAEFIK_NETWORK=proxy  TRAEFIK_ENTRYPOINT=websecure  TRAEFIK_CERTRESOLVER=letsencrypt
+#   AUTHENTIK_MIDDLEWARE=authentik@docker # your forward-auth middleware
+#   IMAGE_TAG=latest                      # or a release (2026.11.0) or commit (7688b0d)
+#
+# First start: create the admin with the setup code from the container log
+# (Portainer → Containers → amt-logbook → Logs, search "Setup code").
+# Authentik: see docs/authentik.md for the paths to leave unauthenticated.
+services:
+  web:
+    image: barrettefab/amt-logbook-rails:${IMAGE_TAG:-latest}
+    container_name: amt-logbook
+    restart: unless-stopped
+    environment:
+      APP_HOST: ${APP_HOST:?set APP_HOST}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:?set SECRET_KEY_BASE}
+      FORCE_SSL: "true"
+      ASSUME_SSL: "true"            # Traefik terminates TLS
+      SOLID_QUEUE_IN_PUMA: "true"   # background jobs (registry import, email) run in the web process
+      SMTP_ADDRESS: ${SMTP_ADDRESS:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-AMT Logbook <no-reply@example.com>}
+    volumes:
+      - amt_storage:/rails/storage  # SQLite databases: back this up
+    networks:
+      - proxy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost/up"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-proxy}
+      - traefik.http.routers.amt-logbook.rule=Host(`${APP_HOST}`)
+      - traefik.http.routers.amt-logbook.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.amt-logbook.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
+      - traefik.http.routers.amt-logbook.middlewares=${AUTHENTIK_MIDDLEWARE:-authentik@docker}
+      - traefik.http.services.amt-logbook.loadbalancer.server.port=80
+volumes:
+  amt_storage:
+networks:
+  proxy:
+    name: ${TRAEFIK_NETWORK:-proxy}
+    external: true

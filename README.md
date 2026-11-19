@@ -60,6 +60,10 @@ Open the app and create the first admin with that setup code. Then:
 3. Supervisors add their certificate (A&P, IA…) on their profile.
 4. **Admin → Aircraft registry**: upload the FAA's `ReleasableAircraft.zip`.
 
+For production behind Traefik (and Authentik), e.g. as a Portainer stack, use
+`docker-compose.portainer.yml` with the published image
+`barrettefab/amt-logbook-rails`; see [docs/authentik.md](docs/authentik.md).
+
 Back up the `amt_storage` volume (the SQLite databases). Keep
 `SECRET_KEY_BASE` safe: it seals signatures and encrypts authenticator
 secrets.

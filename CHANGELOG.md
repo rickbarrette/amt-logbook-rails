@@ -11,3 +11,4 @@ First version.
 - Progress toward 14 CFR 65.77(b), with statistics and charts.
 - N-number lookup from the FAA Releasable Aircraft database.
 - Invitation-only accounts, 2FA (required for supervisors and admins), and an installable PWA.
+- Docker image and a Portainer/Traefik/Authentik stack file (docker-compose.portainer.yml).
