@@ -18,6 +18,19 @@ class EntriesTest < ActionDispatch::IntegrationTest
     assert_equal [ "A-I-C" ], e.subject_areas
   end
 
+  test "the entry form has each field once" do
+    get new_work_entry_path
+    %w[work_entry[description] work_entry[hours] work_entry[ata_chapter] work_entry[location] work_entry[supervisor_id]].each do |name|
+      assert_select "[name='#{name}']", 1, name
+    end
+    assert_select "input[name='work_entry[category]']", Faa.categories.size
+    Setting.set("signature_mode", "ink")
+    get new_work_entry_path
+    assert_select "[name='work_entry[description]']", 1
+    assert_select "[name='work_entry[supervisor_name]']", 1
+    assert_select "[name='work_entry[supervisor_id]']", 0
+  end
+
   test "invalid entry re-renders the form" do
     post work_entries_path, params: { work_entry: { performed_on: Date.current, hours: "", category: "airframe", description: "" } }
     assert_response :unprocessable_entity

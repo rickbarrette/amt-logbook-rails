@@ -1,5 +1,10 @@
 # What's new
 
+## 2026.11.2
+
+### Fixes
+- The entry form showed the category, description, ATA, location and ACS fields twice, and the empty second copy replaced what was typed in the first.
+
 ## 2026.11.1
 
 ### Changes
