@@ -3,13 +3,13 @@
 #   cp .env.example .env    # set SECRET_KEY_BASE (bin/rails secret) and APP_HOST
 #   APP_REVISION=$(git rev-parse --short HEAD) docker compose up -d --build
 #   docker compose logs web | grep "Setup code"   # needed to create the first admin
-#   open http://localhost:3000
+#   open http://localhost:3000            (AMT_PORT=3200 docker compose ... to change the port)
 services:
   web:
     build: .
     restart: unless-stopped
     ports:
-      - "3000:80"
+      - "${AMT_PORT:-3000}:80"
     env_file: .env
     environment:
       APP_REVISION: ${APP_REVISION:-}
