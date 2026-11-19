@@ -8,7 +8,11 @@
       <div><%= f.label :from, class: "label" %><%= f.date_field :from, class: "input" %></div>
       <div><%= f.label :to, class: "label" %><%= f.date_field :to, class: "input" %></div>
     </div>
-    <label class="flex items-center gap-2 text-sm"><%= f.check_box :include_unsigned, class: "accent-sky-700" %> Include entries still waiting for a signature (to be signed in ink)</label>
+    <% if Setting.ink_signatures? %>
+      <p class="text-sm muted">Includes every recorded entry, for your supervisors to sign in ink.</p>
+    <% else %>
+      <label class="flex items-center gap-2 text-sm"><%= f.check_box :include_unsigned, class: "accent-sky-700" %> Include entries still waiting for a signature (to be signed in ink)</label>
+    <% end %>
     <div class="flex flex-wrap gap-2">
       <%= f.button "Open PDF", name: "format", value: "pdf", class: "btn-primary", formtarget: "_blank" %>
       <%= f.button "Download CSV", name: "format", value: "csv", class: "btn" %>

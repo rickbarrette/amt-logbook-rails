@@ -8,7 +8,10 @@ class LogbooksController < ApplicationController
     technician = visible_technician(params[:technician_id])
     from = params[:from].presence && Date.parse(params[:from])
     to = params[:to].presence && Date.parse(params[:to])
-    statuses = params[:include_unsigned] == "1" ? %w[signed submitted] : %w[signed]
+    statuses = if Setting.ink_signatures? then %w[signed submitted recorded]
+    elsif params[:include_unsigned] == "1" then %w[signed submitted]
+    else %w[signed]
+    end
     entries = technician.work_entries.between(from, to).where(status: statuses).includes(:aircraft, :signature, :supervisor).chronological
     name = "amt-logbook-#{technician.name.parameterize}-#{Date.current.iso8601}"
 

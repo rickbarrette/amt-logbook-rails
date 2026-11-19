@@ -33,6 +33,16 @@ class AircraftController < ApplicationController
     end
   end
 
+  # Fill (or refill) this aircraft's details from the imported FAA registry.
+  def refresh
+    @aircraft = Aircraft.find(params[:id])
+    if @aircraft.refresh_from_registry!
+      redirect_to @aircraft, notice: "Updated from the FAA registry."
+    else
+      redirect_to @aircraft, alert: RegistryRecord.exists? ? "#{@aircraft.n_number} isn't in the FAA registry." : "The FAA registry hasn't been imported yet."
+    end
+  end
+
   private
 
   def visible_technicians = current_user.admin? ? User.all : current_user.technicians

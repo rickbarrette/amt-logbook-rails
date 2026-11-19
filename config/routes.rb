@@ -4,6 +4,11 @@ Rails.application.routes.draw do
     post :two_factor, action: :verify_two_factor
   end
   resources :passwords, param: :token
+  # Single sign-on: POST /auth/oidc (OmniAuth) comes back here.
+  match "auth/:provider/callback", to: "sso#callback", via: %i[get post], as: :sso_callback
+  get "auth/failure", to: "sso#failure"
+  delete "profile/sso", to: "sso#destroy", as: :sso_link
+  resource :about, only: :show
   resource :setup, only: %i[new create], controller: "setup"
   get "invitations/:token", to: "invitations#show", as: :invitation
   patch "invitations/:token", to: "invitations#update"
@@ -28,6 +33,7 @@ Rails.application.routes.draw do
   end
   resources :aircraft, only: %i[index show update] do
     get :lookup, on: :collection
+    post :refresh, on: :member
   end
   resources :signatures, only: %i[index create] do
     post :return_entry, on: :member
@@ -48,7 +54,10 @@ Rails.application.routes.draw do
     end
     resources :supervisions, only: :destroy
     resources :invitations, only: %i[new create show destroy]
-    resources :registry_imports, only: %i[index create]
+    resources :registry_imports, only: %i[index create] do
+      post :refresh_aircraft, on: :collection
+    end
+    resource :settings, only: %i[show update]
   end
 
   get "up" => "rails/health#show", as: :rails_health_check

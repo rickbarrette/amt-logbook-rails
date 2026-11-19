@@ -20,3 +20,22 @@ class AircraftTest < ActiveSupport::TestCase
     assert_nil a.manufacturer
   end
 end
+
+class AircraftRegistryRefreshTest < ActiveSupport::TestCase
+  test "aircraft added before the registry get filled; hand-typed details are kept" do
+    bare = Aircraft.create!(n_number: "N11111")
+    typed = Aircraft.create!(n_number: "N22222", manufacturer: "HOMEBUILT", model: "RV-7")
+    RegistryRecord.create!(n_number: "11111", manufacturer: "MOONEY", model: "M20J")
+    RegistryRecord.create!(n_number: "22222", manufacturer: "VANS", model: "RV-7A")
+    assert_equal 1, Aircraft.refresh_from_registry!
+    assert_equal "MOONEY", bare.reload.manufacturer
+    assert_equal "registry", bare.source
+    assert_equal "HOMEBUILT", typed.reload.manufacturer
+  end
+
+  test "lookup fills a bare aircraft that already exists" do
+    Aircraft.create!(n_number: "N33333")
+    RegistryRecord.create!(n_number: "33333", manufacturer: "PIPER", model: "J-3")
+    assert_equal "PIPER", Aircraft.lookup!("N33333").manufacturer
+  end
+end

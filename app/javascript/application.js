@@ -8,3 +8,12 @@ if (window.Chart && window.matchMedia("(prefers-color-scheme: dark)").matches) {
   window.Chart.defaults.color = "#a3b1c6"
   window.Chart.defaults.borderColor = "rgba(148, 163, 184, 0.18)"
 }
+
+// Chrome and Android offer installing the app: keep the offer for the
+// Install button on the profile page.
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault()
+  window.amtInstallPrompt = event
+  document.dispatchEvent(new CustomEvent("install:available"))
+})
+window.addEventListener("appinstalled", () => { window.amtInstallPrompt = null })

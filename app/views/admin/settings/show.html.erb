@@ -1,0 +1,19 @@
+<% content_for :title, "Settings" %>
+<%= render "admin/nav" %>
+<h1 class="h1 mb-4">Settings</h1>
+<div class="card max-w-2xl">
+  <%= form_with url: admin_settings_path, method: :patch, class: "space-y-4" do |f| %>
+    <fieldset>
+      <legend class="label">Supervisor signatures</legend>
+      <div class="space-y-2">
+        <% Setting::SIGNATURE_MODES.each do |key, label| %>
+          <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-300 p-3 text-sm has-[:checked]:border-sky-600 has-[:checked]:bg-sky-50 dark:border-slate-600 dark:has-[:checked]:bg-sky-950">
+            <%= radio_button_tag :signature_mode, key, Setting.signature_mode == key, class: "mt-1 accent-sky-700" %> <span><%= label %></span>
+          </label>
+        <% end %>
+      </div>
+      <p class="hint mt-2">Ink only: technicians type their supervisor's name and certificate on each entry and record it; finished entries count toward the requirement, and the printed logbook gives the signature column to ink. Entries already signed electronically stay signed.</p>
+    </fieldset>
+    <%= f.submit "Save", class: "btn-primary" %>
+  <% end %>
+</div>

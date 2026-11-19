@@ -8,6 +8,7 @@ class SessionsController < ApplicationController
   end
 
   def create
+    return redirect_to(new_session_path, alert: "Sign in with #{Sso.label}.") unless Sso.password_login?
     user = User.authenticate_with_lockout(email_address: params[:email_address], password: params[:password])
     if user&.disabled?
       redirect_to new_session_path, alert: "This account is disabled."

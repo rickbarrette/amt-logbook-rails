@@ -3,7 +3,7 @@
 <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
   <div>
     <h1 class="h1"><%= @technician == current_user ? "Experience report" : "#{@technician.name}: experience report" %></h1>
-    <p class="text-sm muted"><%= @technician.rating_goal_label %> · signed entries only, unless noted</p>
+    <p class="text-sm muted"><%= @technician.rating_goal_label %> · <%= Setting.ink_signatures? ? "recorded entries" : "signed entries only, unless noted" %></p>
   </div>
   <%= form_with url: report_path, method: :get, class: "flex flex-wrap items-end gap-2" do |f| %>
     <%= hidden_field_tag :technician_id, params[:technician_id] if params[:technician_id] %>

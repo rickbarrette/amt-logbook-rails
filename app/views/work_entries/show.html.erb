@@ -5,7 +5,11 @@
   <div class="ml-auto flex gap-2">
     <% if e.user == current_user && e.editable? %>
       <%= link_to "Edit", edit_work_entry_path(e), class: "btn" %>
-      <% if e.supervisor %><%= button_to "Send to #{e.supervisor.name}", submit_work_entry_path(e), class: "btn-primary" %><% end %>
+      <% if Setting.ink_signatures? %>
+        <% unless e.recorded? %><%= button_to "Record", submit_work_entry_path(e), class: "btn-primary" %><% end %>
+      <% elsif e.supervisor %>
+        <%= button_to "Send to #{e.supervisor.name}", submit_work_entry_path(e), class: "btn-primary" %>
+      <% end %>
       <%= button_to "Delete", work_entry_path(e), method: :delete, class: "btn-danger", form: { data: { turbo_confirm: "Delete this entry?" } } %>
     <% end %>
   </div>
@@ -39,7 +43,11 @@
       <p class="mt-3 text-sm <%= s.intact? ? "text-emerald-700 dark:text-emerald-400" : "text-red-700 dark:text-red-400" %>">
         <%= s.intact? ? "✓ Verified: the entry and signature are unchanged since signing." : "⚠ This entry or its signature changed after signing." %>
       </p>
-      <p class="mt-1 font-mono text-xs muted">ID <%= s.seal.first(8) %> · signed with password + authenticator</p>
+      <p class="mt-1 font-mono text-xs muted">ID <%= s.seal.first(8) %> · signed with <%= s.auth_method_label %></p>
+    <% elsif Setting.ink_signatures? %>
+      <p class="font-medium"><%= e.supervisor_display_name || "No supervisor entered" %></p>
+      <p class="text-sm muted"><%= e.supervisor_display_certificate %></p>
+      <p class="mt-2 text-sm"><%= e.recorded? ? "Recorded. Signed in ink on the printed logbook." : "Draft: record it when it's complete." %></p>
     <% elsif e.submitted? %>
       <p class="text-sm">Waiting for <strong><%= e.supervisor.name %></strong> to sign (sent <%= l(e.submitted_at, format: :short) %>).</p>
     <% else %>

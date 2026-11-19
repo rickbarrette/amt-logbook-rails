@@ -11,6 +11,11 @@
     <%= f.file_field :file, accept: ".zip,.txt", required: true, class: "input w-auto" %><%= f.submit "Import", class: "btn-primary" %>
   <% end %>
 </div>
+<div class="card mb-6 max-w-2xl">
+  <h2 class="h2 mb-1">Aircraft already in the logbook</h2>
+  <p class="mb-3 text-sm muted">Aircraft added before the registry was imported, or filled from an older import, get the current FAA details. <%= pluralize(@refreshable, "aircraft") %> can be updated; aircraft whose details were typed by hand are left alone. This also runs after each import.</p>
+  <%= button_to "Update aircraft from the registry", refresh_aircraft_admin_registry_imports_path, class: "btn", disabled: @count.zero? %>
+</div>
 <% if @imports.any? %>
   <div class="card overflow-x-auto"><table class="table"><thead><tr><th>Uploaded</th><th>File</th><th>Status</th><th>Aircraft</th></tr></thead>
     <tbody><% @imports.each do |i| %>

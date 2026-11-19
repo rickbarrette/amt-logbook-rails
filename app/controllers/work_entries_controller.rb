@@ -20,6 +20,9 @@ class WorkEntriesController < ApplicationController
   def new
     @entry = current_user.work_entries.new(performed_on: Date.current, category: "general",
                                            supervisor: current_user.supervisors.one? ? current_user.supervisors.first : nil)
+    if Setting.ink_signatures? && (last = current_user.work_entries.where.not(supervisor_name: nil).recent.first)
+      @entry.assign_attributes(supervisor_name: last.supervisor_name, supervisor_certificate: last.supervisor_certificate)
+    end
   end
 
   def create
@@ -27,7 +30,7 @@ class WorkEntriesController < ApplicationController
     assign_aircraft
     if @entry.errors.none? && @entry.save
       submit_if_asked
-      redirect_to @entry, notice: @entry.submitted? ? "Entry saved and sent to #{@entry.supervisor.name} to sign." : "Entry saved as a draft."
+      redirect_to @entry, notice: saved_notice
     else
       render :new, status: :unprocessable_entity
     end
@@ -42,14 +45,17 @@ class WorkEntriesController < ApplicationController
     assign_aircraft
     if @entry.errors.none? && @entry.save
       submit_if_asked
-      redirect_to @entry, notice: @entry.submitted? ? "Entry sent to #{@entry.supervisor.name} to sign." : "Entry saved."
+      redirect_to @entry, notice: saved_notice
     else
       render :edit, status: :unprocessable_entity
     end
   end
 
   def submit
-    if @entry.supervisor
+    if Setting.ink_signatures?
+      @entry.record!
+      redirect_to @entry, notice: "Entry recorded. Your supervisor signs it on the printed logbook."
+    elsif @entry.supervisor
       @entry.submit!
       redirect_to @entry, notice: "Sent to #{@entry.supervisor.name} to sign."
     else
@@ -83,7 +89,7 @@ class WorkEntriesController < ApplicationController
 
   def entry_params
     params.expect(work_entry: [ :performed_on, :hours, :category, :ata_chapter, :description, :reference, :location,
-                                :supervisor_id, :n_number, subject_areas: [] ])
+                                :supervisor_id, :supervisor_name, :supervisor_certificate, :n_number, subject_areas: [] ])
   end
 
   def assign_aircraft
@@ -94,6 +100,18 @@ class WorkEntriesController < ApplicationController
   end
 
   def submit_if_asked
-    @entry.submit! if params[:submit_for_signature].present? && @entry.supervisor
+    return if params[:submit_for_signature].blank?
+    if Setting.ink_signatures?
+      @entry.record!
+    elsif @entry.supervisor
+      @entry.submit!
+    end
+  end
+
+  def saved_notice
+    if @entry.submitted? then "Entry sent to #{@entry.supervisor.name} to sign."
+    elsif @entry.recorded? then "Entry recorded. Your supervisor signs it on the printed logbook."
+    else "Entry saved as a draft."
+    end
   end
 end

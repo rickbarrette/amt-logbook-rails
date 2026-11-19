@@ -1,6 +1,9 @@
 <% content_for :title, @aircraft.n_number %>
 <h1 class="h1 mb-1"><%= @aircraft.n_number %></h1>
-<p class="mb-4 muted"><%= @aircraft.description.presence || "No details" %> · <%= @aircraft.source == "registry" ? "from the FAA registry" : "entered by hand" %></p>
+<div class="mb-4 flex flex-wrap items-center gap-3">
+  <p class="muted"><%= @aircraft.description.presence || "No details" %> · <%= @aircraft.source == "registry" ? "from the FAA registry" : "entered by hand" %></p>
+  <% if RegistryRecord.exists? %><%= button_to "Update from FAA registry", refresh_aircraft_path(@aircraft), class: "btn btn-sm", form: { data: { turbo_confirm: @aircraft.source == "manual" && @aircraft.manufacturer.present? ? "Replace the details typed by hand with the registry's?" : nil } } %><% end %>
+</div>
 <div class="grid gap-4 lg:grid-cols-3">
   <div class="card">
     <%= form_with model: @aircraft, url: aircraft_path(@aircraft), class: "space-y-3" do |f| %>

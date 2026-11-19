@@ -17,6 +17,28 @@
   </div>
 
   <div class="space-y-6">
+    <div class="card" data-controller="install">
+      <h2 class="h2 mb-2">App on this device</h2>
+      <p class="text-sm text-emerald-700 dark:text-emerald-400" data-install-target="installed" hidden>✓ Installed. You're using the app.</p>
+      <button type="button" class="btn-primary" data-install-target="button" data-action="install#install" hidden>Install AMT Logbook</button>
+      <p class="text-sm muted" data-install-target="ios" hidden>In Safari, tap the Share button, then <strong>Add to Home Screen</strong>.</p>
+      <p class="text-sm muted" data-install-target="other" hidden>Use your browser's menu: <strong>Install app</strong> or <strong>Add to Home screen</strong>.</p>
+      <p class="hint">Installed, it opens full-screen and your timer is a tap away.</p>
+    </div>
+
+    <% if Sso.enabled? %>
+      <div class="card">
+        <h2 class="h2 mb-2"><%= Sso.label %></h2>
+        <% if @user.sso_linked? %>
+          <p class="mb-3 text-sm">Linked: you can sign in with <%= Sso.label %><%= " and confirm signatures with it" if @user.supervisor? && Setting.electronic_signatures? %>.</p>
+          <% if Sso.password_login? %><%= button_to "Unlink", sso_link_path, method: :delete, class: "btn-danger btn-sm" %><% end %>
+        <% else %>
+          <p class="mb-3 text-sm muted">Link your <%= Sso.label %> account to sign in with it.</p>
+          <%= button_to "Link #{Sso.label}", "/auth/oidc", class: "btn", data: { turbo: false } %>
+        <% end %>
+      </div>
+    <% end %>
+
     <div class="card" id="two-factor">
       <h2 class="h2 mb-2">Two-factor sign-in</h2>
       <% if @user.otp_enabled? %>
@@ -35,7 +57,7 @@
       <% end %>
     </div>
 
-    <% if @user.supervisor? %>
+    <% if @user.supervisor? && Setting.electronic_signatures? %>
       <div class="card" id="certificates">
         <h2 class="h2 mb-2">Certificates</h2>
         <p class="mb-3 text-sm muted">Shown with your signature. An airframe-only certificate can sign airframe and general work; powerplant-only, powerplant and general (14 CFR 65.81).</p>

@@ -13,13 +13,25 @@ class Aircraft < ApplicationRecord
     v.present? && !v.start_with?("N") ? "N#{v}" : v
   end
 
-  # Finds or creates the aircraft, filling details from the registry.
+  # Typed without details, or filled from the registry before: safe to
+  # (re)fill from the registry. Details typed by hand are left alone.
+  scope :registry_refreshable, -> { where(source: "registry").or(where(manufacturer: [ nil, "" ], model: [ nil, "" ])) }
+
+  # Finds or creates the aircraft, filling details from the registry (also for
+  # one added before the registry was imported).
   def self.lookup!(n_number)
     n = normalize_n_number(n_number)
-    find_by(n_number: n) || begin
-      record = RegistryRecord.find_by_n_number(n)
-      create!(record ? record.aircraft_attributes : { n_number: n })
+    if (aircraft = find_by(n_number: n))
+      aircraft.refresh_from_registry! if aircraft.manufacturer.blank? && aircraft.model.blank?
+      return aircraft
     end
+    record = RegistryRecord.find_by_n_number(n)
+    create!(record ? record.aircraft_attributes : { n_number: n })
+  end
+
+  # Returns how many aircraft were updated.
+  def self.refresh_from_registry!
+    registry_refreshable.find_each.count(&:refresh_from_registry!)
   end
 
   def description = [ year_manufactured, manufacturer, model ].compact_blank.join(" ")
@@ -28,5 +40,6 @@ class Aircraft < ApplicationRecord
   def refresh_from_registry!
     record = RegistryRecord.find_by_n_number(n_number) or return false
     update!(record.aircraft_attributes)
+    true
   end
 end

@@ -62,7 +62,8 @@ FROM base
 
 # The commit this image was built from (shown in the service worker version).
 ARG APP_REVISION=""
-ENV APP_REVISION=$APP_REVISION
+ARG APP_BUILT_AT=""
+ENV APP_REVISION=$APP_REVISION APP_BUILT_AT=$APP_BUILT_AT
 
 # Run and own only the runtime files as a non-root user for security
 RUN groupadd --system --gid 1000 rails && \

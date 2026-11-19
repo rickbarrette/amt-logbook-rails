@@ -17,3 +17,6 @@ Rails.application.config.after_initialize do
 rescue ActiveRecord::ActiveRecordError
   nil
 end
+
+# Shown on the About page (uptime).
+Rails.application.config.x.booted_at = Time.current

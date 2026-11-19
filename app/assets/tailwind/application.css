@@ -19,5 +19,10 @@
   .table { @apply w-full text-left text-sm; }
   .table th { @apply border-b border-slate-200 px-2 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-700 dark:text-slate-400; }
   .table td { @apply border-b border-slate-100 px-2 py-2 align-top dark:border-slate-700/60; }
+  .prose-notes { @apply space-y-2 text-sm; }
+  .prose-notes h3 { @apply mt-3 font-semibold text-slate-900 dark:text-white; }
+  .prose-notes ul { @apply list-disc space-y-1 pl-5; }
+  .prose-notes code { @apply rounded bg-slate-100 px-1 text-xs dark:bg-slate-700; }
+  .prose-notes a { @apply text-sky-700 hover:underline dark:text-sky-400; }
   .link { @apply text-sky-700 hover:underline dark:text-sky-400; }
 }

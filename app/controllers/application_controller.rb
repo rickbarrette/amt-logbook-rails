@@ -10,7 +10,7 @@ class ApplicationController < ActionController::Base
 
   # Admins and supervisors must turn on an authenticator before going further.
   def require_two_factor_setup
-    return unless current_user&.otp_required? && !current_user.otp_enabled?
+    return unless current_user&.otp_required? && !current_user.otp_enabled? && !Current.session&.via_sso?
     redirect_to new_two_factor_path, alert: "Set up an authenticator app to continue. Supervisors and admins need two-factor sign-in."
   end
 
@@ -24,6 +24,10 @@ class ApplicationController < ActionController::Base
 
   def require_supervisor
     redirect_to root_path, alert: "Only supervisors can do that." unless current_user.supervisor?
+  end
+
+  def require_electronic_signatures
+    redirect_to root_path, alert: "Signatures are in ink on the printed logbook (Admin → Settings)." if Setting.ink_signatures?
   end
 
   # Technicians whose records the current user may see.

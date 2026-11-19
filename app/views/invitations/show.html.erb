@@ -1,14 +1,20 @@
 <% content_for :title, "Create your account" %>
 <div class="mx-auto mt-10 max-w-md">
   <h1 class="h1 mb-2">Welcome, <%= @invitation.name %></h1>
-  <p class="mb-6 muted">Choose a password for <strong><%= @invitation.email_address %></strong>.</p>
+  <p class="mb-6 muted">Create your account for <strong><%= @invitation.email_address %></strong>.</p>
   <div class="card">
+    <% if Sso.enabled? %>
+      <%= button_to "Continue with #{Sso.label}", "/auth/oidc", class: "btn-primary w-full", data: { turbo: false } %>
+      <% if Sso.password_login? %><p class="my-4 text-center text-xs muted">or choose a password</p><% end %>
+    <% end %>
+    <% if Sso.password_login? %>
     <% if @user&.errors&.any? %><p class="mb-3 text-sm text-red-600"><%= @user.errors.full_messages.to_sentence %></p><% end %>
     <%= form_with url: invitation_path(@invitation.token), method: :patch, class: "space-y-4" do |f| %>
       <div><%= f.label :password, class: "label" %><%= f.password_field :password, required: true, minlength: User::PASSWORD_MIN, maxlength: 72, autocomplete: "new-password", class: "input" %>
         <p class="hint">At least <%= User::PASSWORD_MIN %> characters.</p></div>
       <div><%= f.label :password_confirmation, class: "label" %><%= f.password_field :password_confirmation, required: true, autocomplete: "new-password", class: "input" %></div>
-      <%= f.submit "Create account", class: "btn-primary w-full" %>
+      <%= f.submit "Create account", class: Sso.enabled? ? "btn w-full" : "btn-primary w-full" %>
+    <% end %>
     <% end %>
   </div>
 </div>

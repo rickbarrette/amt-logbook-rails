@@ -1,0 +1,19 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "Cross-Site Scripting",
+      "fingerprint": "19a875ee0f731404f43168c667d672fe56634e0062b1e790f644dae31e0f3d8b",
+      "check_name": "LinkToHref",
+      "file": "app/views/abouts/show.html.erb",
+      "note": "SystemInfo#repository_url only returns an http(s) URL (regex-checked), and revision_url is built from it plus a hex commit."
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "fingerprint": "343c1ad946a1eac2824ffc83b35812342e15bd70ca221c0346c63dee87ea9ada",
+      "check_name": "LinkToHref",
+      "file": "app/views/abouts/show.html.erb",
+      "note": "SystemInfo#repository_url only returns an http(s) URL (regex-checked), and revision_url is built from it plus a hex commit."
+    }
+  ],
+  "brakeman_version": "8.1.0"
+}

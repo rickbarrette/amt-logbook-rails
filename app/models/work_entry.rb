@@ -1,7 +1,11 @@
-# One logbook entry: practical experience performed on a day, for a supervisor
-# to sign. Draft -> submitted -> signed (permanent), or returned for changes.
+# One logbook entry: practical experience performed on a day.
+#
+# Electronic signatures: draft -> submitted -> signed (permanent), or
+# returned for changes. Ink only (Admin → Settings): draft -> recorded, with
+# the supervisor's name and certificate typed on the entry, to be signed by
+# hand on the printed logbook.
 class WorkEntry < ApplicationRecord
-  STATUSES = %w[draft submitted returned signed].freeze
+  STATUSES = %w[draft submitted returned signed recorded].freeze
   MAX_MINUTES = 24 * 60
 
   belongs_to :user
@@ -14,10 +18,12 @@ class WorkEntry < ApplicationRecord
   attr_accessor :n_number
 
   normalizes :description, with: ->(d) { d.strip }
+  normalizes :supervisor_name, :supervisor_certificate, with: ->(v) { v.strip.presence }
   validates :performed_on, :description, presence: true
   validates :minutes, numericality: { only_integer: true, greater_than: 0, less_than_or_equal_to: MAX_MINUTES }
   validates :category, inclusion: { in: ->(_) { Faa.categories.keys } }
   validates :status, inclusion: { in: STATUSES }
+  validates :supervisor_name, :supervisor_certificate, length: { maximum: 100 }
   validates :ata_chapter, inclusion: { in: ->(_) { Faa.ata_chapters.keys } }, allow_blank: true
   validate :subject_areas_known
   validate :not_in_future
@@ -32,10 +38,25 @@ class WorkEntry < ApplicationRecord
   scope :recent, -> { order(performed_on: :desc, id: :desc) }
   scope :signed, -> { where(status: "signed") }
   scope :awaiting_signature, -> { where(status: "submitted") }
+  # Entries that count toward the experience requirement: signed ones, or in
+  # ink-only mode every finished entry (the signature is on paper).
+  scope :counted, -> { Setting.ink_signatures? ? where(status: %w[signed recorded submitted]) : signed }
   scope :between, ->(from, to) { where(performed_on: (from || Date.new(1900))..(to || Date.new(3000))) }
 
   STATUSES.each { |s| define_method(:"#{s}?") { status == s } }
-  def editable? = draft? || returned?
+  def editable? = draft? || returned? || recorded?
+  def counted? = Setting.ink_signatures? ? %w[signed recorded submitted].include?(status) : signed?
+
+  # Who supervised: the e-signature, else as typed (ink mode), else the app supervisor.
+  def supervisor_display_name = signature&.signer_name || supervisor_name.presence || supervisor&.name
+  def supervisor_display_certificate
+    return signature.certificate_label if signature
+    supervisor_name.present? ? supervisor_certificate.presence : supervisor&.certificates&.first&.to_s
+  end
+
+  def record!
+    update!(status: "recorded", submitted_at: Time.current, returned_reason: nil)
+  end
 
   def hours = (minutes.to_i / 60.0).round(1)
   def hours=(value)
@@ -60,7 +81,8 @@ class WorkEntry < ApplicationRecord
     { "entry_id" => id, "technician" => user.name, "performed_on" => performed_on.iso8601, "minutes" => minutes,
       "category" => category, "aircraft" => aircraft&.n_number, "aircraft_description" => aircraft&.description,
       "ata_chapter" => ata_chapter, "subject_areas" => subject_areas, "description" => description,
-      "reference" => reference, "location" => location }
+      "reference" => reference, "location" => location }.merge(
+        supervisor_name.present? ? { "supervisor_name" => supervisor_name, "supervisor_certificate" => supervisor_certificate } : {})
   end
 
   def content_digest = Digest::SHA256.hexdigest(content.to_json)

@@ -14,7 +14,8 @@ class LogbookPdf
   RULE = "9CA3AF"
   FILL = "F3F4F6"
 
-  def initialize(technician, entries, report:, from: nil, to: nil)
+  def initialize(technician, entries, report:, from: nil, to: nil, ink: Setting.ink_signatures?)
+    @ink = ink
     @tech = technician
     @entries = entries
     @report = report
@@ -91,7 +92,7 @@ class LogbookPdf
 
   def summary
     pdf.start_new_page
-    heading("Experience summary", "Signed entries only. Equivalent months = qualifying hours / #{@report.hours_per_month.round} hours " \
+    heading("Experience summary", "#{@ink ? "Recorded entries, signed in ink on the pages that follow" : "Signed entries only"}. Equivalent months = qualifying hours / #{@report.hours_per_month.round} hours " \
             "(a full-time month). The FAA inspector makes the final determination.")
     r = @report
     cats = r.hours_by_category
@@ -158,6 +159,12 @@ class LogbookPdf
   HEADERS = [ "Date", "Aircraft", "ATA / ACS", "Description of work performed", "Airframe", "Power-\nplant", "General",
               "Supervisor / certificate", "Electronic signature", "Supervisor\nsignature" ].freeze
   WIDTHS = [ 50, 72, 56, 236, 34, 34, 34, 82, 70, 52 ].freeze
+  # Ink only: no electronic-signature column; the ink column gets its room.
+  INK_HEADERS = (HEADERS - [ "Electronic signature" ]).freeze
+  INK_WIDTHS = [ 50, 72, 56, 236, 34, 34, 34, 82, 122 ].freeze
+
+  def headers = @ink ? INK_HEADERS : HEADERS
+  def widths = @ink ? INK_WIDTHS : WIDTHS
 
   def entry_row(e)
     sig = e.signature
@@ -171,14 +178,14 @@ class LogbookPdf
       [ e.ata_chapter.presence && "ATA #{e.ata_chapter}", e.subject_areas.join(" ") ].compact_blank.join("\n"),
       [ e.description, e.reference.presence && "Ref: #{e.reference}" ].compact_blank.join("\n"),
       cat.("airframe"), cat.("powerplant"), cat.("general"),
-      [ sig&.signer_name || e.supervisor&.name, sig&.certificate_label ].compact_blank.join("\n"), esign, "" ].map { txt(_1) }
+      [ e.supervisor_display_name, e.supervisor_display_certificate ].compact_blank.join("\n"), (esign unless @ink), "" ].compact.map { txt(_1) }
   end
 
   def totals(list) = %w[airframe powerplant general].map { |c| list.select { _1.category == c }.sum(&:minutes) }
 
   def build_table(rows, extra_rows = [])
-    data = [ HEADERS ] + rows + extra_rows
-    pdf.make_table(data, column_widths: WIDTHS, header: true,
+    data = [ headers ] + rows + extra_rows
+    pdf.make_table(data, column_widths: widths, header: true,
                    cell_style: { size: 7, padding: [ 3, 3 ], border_color: RULE, border_width: 0.5, valign: :top }) do |t|
       t.row(0).font_style = :bold
       t.row(0).background_color = FILL
@@ -195,7 +202,7 @@ class LogbookPdf
   def total_rows(page, forward)
     to_date = page.zip(forward).map(&:sum)
     [ [ "Totals this page", page ], [ "Brought forward", forward ], [ "Total to date", to_date ] ].map do |label, t|
-      [ { content: label, colspan: 4, align: :right } ] + t.map { hrs(_1) } + [ { content: "", colspan: 3 } ]
+      [ { content: label, colspan: 4, align: :right } ] + t.map { hrs(_1) } + [ { content: "", colspan: @ink ? 2 : 3 } ]
     end
   end
 

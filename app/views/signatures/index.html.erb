@@ -37,9 +37,19 @@
     </div>
     <div class="card grid gap-3 sm:grid-cols-[1fr_1fr_10rem_auto] sm:items-end">
       <div><%= label_tag :certificate_id, "Sign with certificate", class: "label" %><%= select_tag :certificate_id, options_for_select(@certificates.map { [_1.to_s, _1.id] }), class: "input" %></div>
-      <div><%= label_tag :password, "Your password", class: "label" %><%= password_field_tag :password, nil, required: true, autocomplete: "current-password", class: "input" %></div>
-      <div><%= label_tag :code, "Authenticator code", class: "label" %><%= text_field_tag :code, nil, required: true, autocomplete: "one-time-code", inputmode: "numeric", class: "input" %></div>
+      <% if @sso_confirmed %>
+        <p class="text-sm text-emerald-700 sm:col-span-2 dark:text-emerald-400">✓ Confirmed with <%= Sso.label %>. Sign within <%= Sso::REAUTH_FOR.in_minutes.to_i %> minutes of confirming.</p>
+      <% else %>
+        <div><%= label_tag :password, "Your password", class: "label" %><%= password_field_tag :password, nil, required: true, autocomplete: "current-password", class: "input" %></div>
+        <div><%= label_tag :code, "Authenticator code", class: "label" %><%= text_field_tag :code, nil, required: true, autocomplete: "one-time-code", inputmode: "numeric", class: "input" %></div>
+      <% end %>
       <button type="submit" class="btn-primary h-10" <%= "disabled" if @certificates.empty? %>>Sign <span data-select-all-target="count" class="mx-1"></span> selected</button>
+    </div>
+  <% end %>
+  <% if Sso.enabled? && current_user.sso_linked? && !@sso_confirmed %>
+    <div class="mt-3 flex items-center gap-3 text-sm">
+      <span class="muted">Or confirm who you are with <%= Sso.label %> instead of your password and code:</span>
+      <%= button_to "Confirm with #{Sso.label}", "/auth/oidc", params: { prompt: "login" }, class: "btn btn-sm", data: { turbo: false } %>
     </div>
   <% end %>
   <% @entries.each do |e| %>

@@ -1,6 +1,7 @@
 # Progress toward the 14 CFR 65.77(b) experience requirement, and statistics,
-# for one technician. Only signed entries count toward the requirement;
-# entries awaiting signature are shown separately as "pending".
+# for one technician. Only signed entries count toward the requirement (in
+# ink-only mode, every finished entry); entries awaiting an electronic
+# signature are shown separately as "pending".
 class ExperienceReport
   attr_reader :user, :from, :to
 
@@ -11,8 +12,9 @@ class ExperienceReport
   end
 
   def entries = @entries ||= user.work_entries.between(from, to).includes(:aircraft, :supervisor, :signature).chronological.to_a
-  def signed = @signed ||= entries.select(&:signed?)
-  def pending = @pending ||= entries.select(&:submitted?)
+  # "signed" here means counted toward the requirement (see WorkEntry#counted?).
+  def signed = @signed ||= entries.select(&:counted?)
+  def pending = @pending ||= Setting.ink_signatures? ? [] : entries.select(&:submitted?)
 
   def rule = Faa.ratings.fetch(user.rating_goal)
   def required_months = rule.fetch("months")
@@ -100,13 +102,13 @@ class ExperienceReport
   def hours_by_ata = group_hours { _1.ata_label || "Unclassified" }
   def hours_by_aircraft = group_hours { _1.aircraft&.n_number || "No aircraft" }.first(10).to_h
   def hours_by_aircraft_type = group_hours { _1.aircraft&.aircraft_type.presence || _1.aircraft&.description.presence || "Unknown" }
-  def hours_by_supervisor = group_hours { _1.signature&.signer_name || _1.supervisor&.name || "Unknown" }
+  def hours_by_supervisor = group_hours { _1.supervisor_display_name || "Unknown" }
 
-  # Supervisors who signed, with their certificate and period (for the
-  # printed book's verification pages).
+  # Supervisors of the counted entries, with certificate and period (for the
+  # printed book's statement pages).
   def signers
-    signed.group_by { [ _1.signature.signer_name, _1.signature.certificate_label, _1.signature.user_id ] }.map do |(name, cert, user_id), list|
-      { name:, certificate: cert, user_id:, from: list.first.performed_on, to: list.last.performed_on,
+    signed.group_by { [ _1.supervisor_display_name || "Supervisor", _1.supervisor_display_certificate.to_s ] }.map do |(name, cert), list|
+      { name:, certificate: cert.presence || "__________", from: list.first.performed_on, to: list.last.performed_on,
         hours: hours(list), by_category: hours_by_category(list) }
     end
   end

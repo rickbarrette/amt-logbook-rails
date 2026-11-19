@@ -39,7 +39,7 @@ class User < ApplicationRecord
 
   # Certificates usable for signing (unexpired).
   def signing_certificates = certificates.reject(&:expired?)
-  def can_sign? = supervisor? && !disabled? && signing_certificates.any?
+  def can_sign? = supervisor? && !disabled? && signing_certificates.any? && Setting.electronic_signatures?
 
   def rating_goal_label = Faa.ratings.dig(rating_goal, "label")
 
@@ -72,8 +72,11 @@ class User < ApplicationRecord
 
   def otp_enabled? = otp_enabled_at.present? && otp_secret.present?
 
-  # Supervisors sign records and admins manage accounts: both need a second factor.
-  def otp_required? = admin? || supervisor?
+  # Admins manage accounts and supervisors sign records (electronic
+  # signatures): both need a second factor. Sessions started through single
+  # sign-on are exempt (the provider handles MFA); see ApplicationController.
+  def otp_required? = admin? || (supervisor? && Setting.electronic_signatures?)
+  def sso_linked? = sso_uid.present?
 
   def self.new_otp_secret = ROTP::Base32.random
 

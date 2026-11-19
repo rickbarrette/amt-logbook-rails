@@ -10,7 +10,8 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <%= yield :head %>
-    <%= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
+    <%# With credentials, so the manifest loads behind a forward-auth proxy (Authentik). %>
+    <%= tag.link rel: "manifest", href: pwa_manifest_path(format: :json), crossorigin: "use-credentials" %>
     <link rel="icon" href="/icon.png" type="image/png">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
@@ -33,7 +34,7 @@
               <%= nav_link "Reports", report_path %>
               <%= nav_link "Print", logbook_path %>
             <% end %>
-            <% if current_user.supervisor? %>
+            <% if current_user.supervisor? && Setting.electronic_signatures? %>
               <%= nav_link "Sign", signatures_path, badge: current_user.entries_to_sign.awaiting_signature.count %>
             <% end %>
             <%= nav_link "Aircraft", aircraft_index_path %>
@@ -57,6 +58,11 @@
       <% if notice %><div class="mb-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200" id="notice"><%= notice %></div><% end %>
       <% if alert %><div class="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800 dark:bg-red-900/40 dark:text-red-200" id="alert"><%= alert %></div><% end %>
       <%= yield %>
+      <% if authenticated? %>
+        <footer class="mt-10 text-center text-xs muted">
+          <%= link_to "AMT Logbook #{Rails.application.config.x.version}", about_path, class: "hover:underline" %>
+        </footer>
+      <% end %>
     </main>
 
     <% if authenticated? %>
@@ -64,7 +70,7 @@
       <nav class="fixed inset-x-0 bottom-0 z-20 flex border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] md:hidden dark:border-slate-700 dark:bg-slate-800">
         <% tabs = [["Home", root_path]]
            tabs += [["Entries", work_entries_path], ["Timer", timers_path], ["Reports", report_path]] if current_user.technician?
-           tabs << ["Sign", signatures_path] if current_user.supervisor?
+           tabs << ["Sign", signatures_path] if current_user.supervisor? && Setting.electronic_signatures?
            tabs << (current_user.technician? ? ["Print", logbook_path] : ["Aircraft", aircraft_index_path]) %>
         <% tabs.each do |label, path| %>
           <% active = path == root_path ? current_page?(root_path) : request.path.start_with?(path) %>

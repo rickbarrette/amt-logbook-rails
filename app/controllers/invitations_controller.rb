@@ -4,7 +4,9 @@ class InvitationsController < ApplicationController
   skip_before_action :require_two_factor_setup
   before_action :set_invitation
 
+  # Remembered so "Sign in with SSO" from this page can create the account.
   def show
+    session[:invitation_token] = @invitation.token
   end
 
   def update

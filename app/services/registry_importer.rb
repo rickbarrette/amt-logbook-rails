@@ -24,7 +24,7 @@ class RegistryImporter
       models = index(files["ACFTREF.TXT"]) { |r| [ r["CODE"], { mfr: r["MFR"], model: r["MODEL"], engines: r["NO-ENG"], seats: r["NO-SEATS"] } ] }
       engines = index(files["ENGINE.TXT"]) { |r| [ r["CODE"], { mfr: r["MFR"], model: r["MODEL"] } ] }
       count = import_master(files["MASTER.TXT"], models, engines)
-      Aircraft.where(source: "registry").find_each(&:refresh_from_registry!)
+      Aircraft.refresh_from_registry!
       count
     end
   end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_19_122240) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_19_150000) do
   create_table "aircraft", force: :cascade do |t|
     t.string "n_number", null: false
     t.string "serial_number"
@@ -99,7 +99,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_19_122240) do
     t.string "user_agent"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "via_sso", default: false, null: false
     t.index ["user_id"], name: "index_sessions_on_user_id"
+  end
+
+  create_table "settings", force: :cascade do |t|
+    t.string "key", null: false
+    t.text "value"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["key"], name: "index_settings_on_key", unique: true
   end
 
   create_table "supervisions", force: :cascade do |t|
@@ -160,7 +169,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_19_122240) do
     t.datetime "last_signed_in_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "sso_uid"
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
+    t.index ["sso_uid"], name: "index_users_on_sso_uid", unique: true
   end
 
   create_table "work_entries", force: :cascade do |t|
@@ -182,6 +193,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_19_122240) do
     t.text "returned_reason"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "supervisor_name"
+    t.string "supervisor_certificate"
     t.index ["aircraft_id"], name: "index_work_entries_on_aircraft_id"
     t.index ["supervisor_id", "status"], name: "index_work_entries_on_supervisor_id_and_status"
     t.index ["supervisor_id"], name: "index_work_entries_on_supervisor_id"
