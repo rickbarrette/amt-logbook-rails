@@ -1,0 +1,9 @@
+<% content_for :title, "Authenticator code" %>
+<div class="mx-auto mt-10 max-w-sm card">
+  <h1 class="h2 mb-2">Authenticator code</h1>
+  <p class="mb-4 text-sm muted">Enter the 6-digit code from your authenticator app, or one of your recovery codes.</p>
+  <%= form_with url: two_factor_session_path, class: "space-y-4" do |f| %>
+    <%= f.text_field :code, required: true, autofocus: true, autocomplete: "one-time-code", inputmode: "numeric", class: "input text-center text-lg tracking-widest" %>
+    <%= f.submit "Verify", class: "btn-primary w-full" %>
+  <% end %>
+</div>

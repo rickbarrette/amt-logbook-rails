@@ -1,0 +1,15 @@
+<% content_for :title, "Two-factor sign-in" %>
+<div class="mx-auto max-w-md card">
+  <h1 class="h2 mb-2">Set up an authenticator app</h1>
+  <ol class="mb-4 list-decimal space-y-1 pl-5 text-sm muted">
+    <li>Open an authenticator app (Google Authenticator, 1Password, Authy, Bitwarden…).</li>
+    <li>Scan this code, or enter the key by hand.</li>
+    <li>Type the 6-digit code it shows.</li>
+  </ol>
+  <img src="<%= @qr_data_uri %>" alt="QR code for your authenticator app" class="mx-auto mb-3 h-48 w-48 rounded bg-white p-2">
+  <p class="mb-4 break-all text-center font-mono text-xs muted"><%= @secret.scan(/.{4}/).join(" ") %></p>
+  <%= form_with url: two_factor_path, class: "space-y-3" do |f| %>
+    <%= f.text_field :code, required: true, autocomplete: "one-time-code", inputmode: "numeric", placeholder: "123456", class: "input text-center text-lg tracking-widest" %>
+    <%= f.submit "Turn on two-factor", class: "btn-primary w-full" %>
+  <% end %>
+</div>

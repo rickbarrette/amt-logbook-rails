@@ -1,0 +1,32 @@
+draft:
+  user: tech
+  aircraft: n12345
+  supervisor: sup
+  performed_on: <%= Date.current - 3 %>
+  minutes: 240
+  category: airframe
+  ata_chapter: "32"
+  subject_areas: ["A-II-A"]
+  description: Replaced left main brake linings per maintenance manual.
+  status: draft
+
+submitted:
+  user: tech
+  aircraft: n12345
+  supervisor: sup
+  performed_on: <%= Date.current - 2 %>
+  minutes: 480
+  category: powerplant
+  ata_chapter: "79"
+  subject_areas: ["P-II-D"]
+  description: Oil change and filter inspection, safety wired filter.
+  status: submitted
+  submitted_at: <%= 1.day.ago.to_fs(:db) %>
+
+tom_entry:
+  user: other_tech
+  performed_on: <%= Date.current - 1 %>
+  minutes: 60
+  category: general
+  description: Cleaned and inspected hangar tools.
+  status: draft

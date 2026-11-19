@@ -1,0 +1,18 @@
+<% if entries.empty? %>
+  <p class="py-4 muted">No entries yet. <%= link_to("Add one", new_work_entry_path, class: "link") if current_user.technician? %></p>
+<% else %>
+  <table class="table">
+    <thead><tr><th>Date</th><th class="hidden sm:table-cell">Aircraft</th><th>Work</th><th class="text-right">Hours</th><th class="hidden sm:table-cell">Status</th></tr></thead>
+    <tbody>
+      <% entries.each do |e| %>
+        <tr>
+          <td class="whitespace-nowrap"><%= link_to l(e.performed_on, format: :short), e, class: "link" %><div class="mt-1 sm:hidden"><%= status_badge(e.status) %></div></td>
+          <td class="hidden whitespace-nowrap sm:table-cell"><%= e.aircraft&.n_number || "—" %></td>
+          <td><div class="line-clamp-2"><%= e.description %></div><div class="text-xs muted"><%= [e.category_label, e.ata_label].compact.join(" · ") %></div></td>
+          <td class="text-right tabular-nums"><%= hours(e.hours) %></td>
+          <td class="hidden sm:table-cell"><%= status_badge(e.status) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>

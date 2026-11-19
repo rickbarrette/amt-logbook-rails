@@ -1,0 +1,7 @@
+n12345:
+  n_number: N12345
+  manufacturer: CESSNA
+  model: 172S
+  year_manufactured: 2001
+  aircraft_type: Fixed wing single engine
+  source: manual

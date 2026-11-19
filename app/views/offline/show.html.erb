@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Offline · AMT Logbook</title>
+  <style>
+    body { font-family: system-ui, sans-serif; display: grid; place-items: center; min-height: 100vh; margin: 0; background: #f8fafc; color: #0f172a; text-align: center; padding: 1rem; }
+    @media (prefers-color-scheme: dark) { body { background: #0f172a; color: #e2e8f0; } }
+    button { margin-top: 1rem; padding: .6rem 1.2rem; border-radius: .5rem; border: 0; background: #0369a1; color: #fff; font-size: 1rem; }
+  </style>
+</head>
+<body>
+  <div>
+    <img src="/icon.svg" width="64" height="64" alt="">
+    <h1>You're offline</h1>
+    <p>Any timer you started is still running on the server.<br>Reconnect to see it or clock out.</p>
+    <button onclick="location.reload()">Try again</button>
+  </div>
+</body>
+</html>

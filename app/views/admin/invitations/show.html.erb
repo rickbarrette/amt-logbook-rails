@@ -1,0 +1,9 @@
+<% content_for :title, "Invitation" %>
+<%= render "admin/nav" %>
+<h1 class="h1 mb-4">Invitation for <%= @invitation.name %></h1>
+<div class="card max-w-2xl space-y-3">
+  <p class="text-sm"><%= mail_configured? ? "An email was sent to #{@invitation.email_address}. You can also share this link:" : "Email isn't set up, so send this link to #{@invitation.email_address} yourself:" %></p>
+  <input readonly value="<%= invitation_url(@invitation.token) %>" class="input font-mono text-xs" onclick="this.select()">
+  <p class="hint">Works once, until <%= l(@invitation.expires_at, format: :long) %>.</p>
+  <%= link_to "Back to users", admin_users_path, class: "btn" %>
+</div>

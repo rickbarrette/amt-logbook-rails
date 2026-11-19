@@ -1,0 +1,9 @@
+<% content_for :title, "Recovery codes" %>
+<div class="mx-auto max-w-md card">
+  <h1 class="h2 mb-2">Save your recovery codes</h1>
+  <p class="mb-4 text-sm muted">Each code signs you in once if you lose your phone. They won't be shown again.</p>
+  <ul class="mb-4 grid grid-cols-2 gap-2 font-mono text-sm">
+    <% @codes.each do |c| %><li class="rounded bg-slate-100 px-2 py-1 text-center dark:bg-slate-900"><%= c %></li><% end %>
+  </ul>
+  <%= link_to "I saved them", root_path, class: "btn-primary w-full" %>
+</div>

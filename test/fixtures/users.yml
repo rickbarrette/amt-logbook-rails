@@ -1,0 +1,29 @@
+<% digest = BCrypt::Password.create("correct-horse-battery", cost: BCrypt::Engine::MIN_COST) %>
+admin:
+  name: Alex Admin
+  email_address: admin@example.com
+  password_digest: <%= digest %>
+  admin: true
+  technician: false
+  supervisor: false
+
+tech:
+  name: Jane Tech
+  email_address: jane@example.com
+  password_digest: <%= digest %>
+  technician: true
+  rating_goal: both
+
+other_tech:
+  name: Tom Wrench
+  email_address: tom@example.com
+  password_digest: <%= digest %>
+  technician: true
+  rating_goal: airframe
+
+sup:
+  name: Sam Supervisor
+  email_address: sam@example.com
+  password_digest: <%= digest %>
+  technician: false
+  supervisor: true

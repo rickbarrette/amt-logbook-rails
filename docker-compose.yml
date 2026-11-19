@@ -1,0 +1,25 @@
+# Self-hosting, built from this checkout: one container, SQLite in a named volume.
+#
+#   cp .env.example .env    # set SECRET_KEY_BASE (bin/rails secret) and APP_HOST
+#   APP_REVISION=$(git rev-parse --short HEAD) docker compose up -d --build
+#   docker compose logs web | grep "Setup code"   # needed to create the first admin
+#   open http://localhost:3000
+services:
+  web:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    env_file: .env
+    environment:
+      APP_REVISION: ${APP_REVISION:-}
+      SOLID_QUEUE_IN_PUMA: "true"   # background jobs (registry import, email) run in the web process
+    volumes:
+      - amt_storage:/rails/storage  # databases: back this up
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost/up"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+volumes:
+  amt_storage:

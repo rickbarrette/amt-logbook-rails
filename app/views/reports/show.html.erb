@@ -1,0 +1,68 @@
+<% content_for :title, "Reports" %>
+<% r = @report %>
+<div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="h1"><%= @technician == current_user ? "Experience report" : "#{@technician.name}: experience report" %></h1>
+    <p class="text-sm muted"><%= @technician.rating_goal_label %> · signed entries only, unless noted</p>
+  </div>
+  <%= form_with url: report_path, method: :get, class: "flex flex-wrap items-end gap-2" do |f| %>
+    <%= hidden_field_tag :technician_id, params[:technician_id] if params[:technician_id] %>
+    <div><%= f.label :from, class: "label" %><%= f.date_field :from, value: @from, class: "input" %></div>
+    <div><%= f.label :to, class: "label" %><%= f.date_field :to, value: @to, class: "input" %></div>
+    <%= f.submit "Apply", class: "btn" %>
+  <% end %>
+</div>
+
+<div class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+  <% [["Qualifying hours", "#{hours(r.qualifying_hours)} / #{r.required_hours}"], ["Equivalent months", "#{r.equivalent_months} / #{r.required_months}"],
+      ["Calendar months", r.calendar_months], ["Pending signature", "#{hours(r.total_hours(r.pending))} h"]].each do |label, value| %>
+    <div class="card"><div class="text-sm muted"><%= label %></div><div class="text-2xl font-bold"><%= value %></div></div>
+  <% end %>
+</div>
+
+<div class="card mb-6">
+  <div class="mb-2 flex justify-between"><h2 class="h2">Toward 14 CFR 65.77(b)</h2><span class="text-sm muted"><%= r.percent_complete %>%</span></div>
+  <%= progress_bar(r.percent_complete) %>
+  <ul class="mt-3 space-y-1 text-sm">
+    <li><%= r.qualifying_hours >= r.required_hours ? "✓" : "○" %> <%= r.required_hours %> qualifying hours (<%= r.required_months %> months × <%= Faa.hours_per_month.round %> h, a full-time month)</li>
+    <li><%= r.calendar_months >= r.required_months ? "✓" : "○" %> Experience spanning at least <%= r.required_months %> calendar months</li>
+    <% if @technician.rating_goal == "both" %><li><%= r.missing_concurrent_categories.empty? ? "✓" : "○" %> Airframe and powerplant work performed concurrently</li><% end %>
+  </ul>
+  <p class="mt-3 text-xs muted">The regulation is stated in months; the FAA inspector reviewing your Form 8610-2 makes the final determination. The hours-per-month figure is set in config/faa/experience_rules.yml.</p>
+</div>
+
+<div class="mb-6 grid gap-4 lg:grid-cols-3">
+  <div class="card lg:col-span-2"><h2 class="h2 mb-2">Hours per month</h2><%= column_chart r.monthly_series, stacked: true, suffix: " h", height: "260px" %></div>
+  <div class="card"><h2 class="h2 mb-2">By category</h2><%= pie_chart r.hours_by_category.transform_keys { Faa.categories[_1] }.select { _2.positive? }, donut: true, suffix: " h", height: "260px" %></div>
+</div>
+
+<div class="card mb-6">
+  <h2 class="h2 mb-3">ACS subject area coverage</h2>
+  <% sa = r.subject_area_hours %>
+  <div class="grid gap-6 md:grid-cols-3">
+    <% Faa.acs_sections.each do |key, section| %>
+      <% cov = r.subject_area_coverage[key] %>
+      <div>
+        <div class="mb-1 flex justify-between text-sm font-semibold"><span><%= section["label"] %></span><span class="muted"><%= cov[:covered] %>/<%= cov[:total] %></span></div>
+        <ul class="space-y-0.5 text-sm">
+          <% section["areas"].each do |code, label| %>
+            <li class="flex justify-between gap-2 <%= sa[code] ? "" : "muted" %>"><span><%= sa[code] ? "✓" : "○" %> <%= label %></span><span class="tabular-nums"><%= sa[code] ? hours(sa[code]) : "" %></span></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<div class="grid gap-4 lg:grid-cols-3">
+  <div class="card"><h2 class="h2 mb-2">By ATA chapter</h2><%= bar_chart r.hours_by_ata.first(12), suffix: " h", height: "320px" %></div>
+  <div class="card"><h2 class="h2 mb-2">By aircraft</h2><%= bar_chart r.hours_by_aircraft, suffix: " h", height: "320px" %></div>
+  <div class="card"><h2 class="h2 mb-2">By aircraft type</h2><%= pie_chart r.hours_by_aircraft_type, suffix: " h", height: "320px" %></div>
+</div>
+
+<div class="card mt-6 overflow-x-auto">
+  <h2 class="h2 mb-2">Supervisors</h2>
+  <table class="table"><thead><tr><th>Supervisor</th><th>Certificate</th><th>Period</th><th class="text-right">Hours</th></tr></thead>
+    <tbody><% r.signers.each do |s| %><tr><td><%= s[:name] %></td><td><%= s[:certificate] %></td><td><%= l(s[:from], format: :short) %> – <%= l(s[:to], format: :short) %></td><td class="text-right"><%= hours(s[:hours]) %></td></tr><% end %></tbody>
+  </table>
+</div>

@@ -1,0 +1,17 @@
+<% content_for :title, "Timer" %>
+<h1 class="h1 mb-1">Timer</h1>
+<p class="mb-4 text-sm muted">The clock runs on the server: close the app or switch to another device and it keeps counting. Clocking out makes a draft entry for you to finish and send to be signed.</p>
+<div class="card mb-6"><%= render "clock_in" %></div>
+<div class="space-y-3 mb-8">
+  <%= render(partial: "timer", collection: @timers) || tag.p("Not clocked in.", class: "muted") %>
+</div>
+<% if @history.any? %>
+  <h2 class="h2 mb-2">Recent</h2>
+  <div class="card overflow-x-auto"><table class="table">
+    <thead><tr><th>Started</th><th>Time</th><th>Description</th><th>Entry</th></tr></thead>
+    <tbody><% @history.each do |t| %>
+      <tr><td><%= l(t.started_at, format: :short) %></td><td class="font-mono"><%= duration(t.accumulated_seconds) %></td><td><%= t.description %></td>
+        <td><%= t.work_entry ? link_to("View", t.work_entry, class: "link") : "—" %></td></tr>
+    <% end %></tbody>
+  </table></div>
+<% end %>

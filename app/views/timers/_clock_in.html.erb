@@ -1,0 +1,10 @@
+<%= form_with url: timers_path, class: "grid gap-3 sm:grid-cols-[8rem_10rem_1fr_auto] sm:items-end", data: { controller: "aircraft-lookup", aircraft_lookup_url_value: lookup_aircraft_index_path } do |f| %>
+  <div>
+    <%= f.label :n_number, "N-number", class: "label" %>
+    <%= f.text_field :n_number, placeholder: "N12345", autocapitalize: "characters", class: "input uppercase", data: { aircraft_lookup_target: "input", action: "input->aircraft-lookup#lookup" } %>
+  </div>
+  <div><%= f.label :category, class: "label" %><%= f.select :category, category_options, { include_blank: "—" }, class: "input" %></div>
+  <div><%= f.label :description, "What are you working on?", class: "label" %><%= f.text_field :description, maxlength: 500, class: "input" %></div>
+  <%= f.submit "Clock in", class: "btn-primary h-10" %>
+  <p class="sm:col-span-4" data-aircraft-lookup-target="result"></p>
+<% end %>

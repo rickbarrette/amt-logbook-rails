@@ -1,0 +1,70 @@
+<% content_for :title, "Dashboard" %>
+<h1 class="h1 mb-4">Hi, <%= current_user.name.split.first %></h1>
+
+<% if current_user.supervisor? && @to_sign.positive? %>
+  <%= link_to signatures_path, class: "mb-4 block rounded-lg bg-amber-50 px-4 py-3 text-amber-900 dark:bg-amber-900/40 dark:text-amber-100" do %>
+    <strong><%= pluralize(@to_sign, "entry") %></strong> waiting for your signature →
+  <% end %>
+<% end %>
+<% if @returned.to_i.positive? %>
+  <%= link_to work_entries_path(status: "returned"), class: "mb-4 block rounded-lg bg-red-50 px-4 py-3 text-red-900 dark:bg-red-900/40 dark:text-red-100" do %>
+    <strong><%= pluralize(@returned, "entry") %></strong> returned by your supervisor for changes →
+  <% end %>
+<% end %>
+
+<% if current_user.technician? %>
+  <% r = @report %>
+  <div class="mb-6 grid gap-4 md:grid-cols-3">
+    <div class="card md:col-span-2">
+      <div class="mb-2 flex items-baseline justify-between">
+        <h2 class="h2"><%= current_user.rating_goal_label %></h2>
+        <span class="text-sm muted">14 CFR 65.77(b): <%= r.required_months %> months</span>
+      </div>
+      <div class="mb-1 flex items-baseline gap-2"><span class="text-3xl font-bold"><%= hours(r.qualifying_hours) %></span><span class="muted">of <%= r.required_hours %> hours · <%= r.equivalent_months %> of <%= r.required_months %> equivalent months</span></div>
+      <%= progress_bar(r.percent_complete) %>
+      <div class="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+        <div><div class="muted">Calendar months</div><div class="font-semibold"><%= r.calendar_months %></div></div>
+        <div><div class="muted">Pending signature</div><div class="font-semibold"><%= hours(r.pending_qualifying_hours) %> h</div></div>
+        <div><div class="muted">Last 8 weeks</div><div class="font-semibold"><%= r.recent_weekly_average %> h/week</div></div>
+        <div><div class="muted">At this pace</div><div class="font-semibold"><%= r.projected_completion ? l(r.projected_completion, format: :long) : "—" %></div></div>
+      </div>
+      <% if r.missing_concurrent_categories.any? %>
+        <p class="mt-3 text-sm text-amber-700 dark:text-amber-300">For both ratings you also need signed <%= r.missing_concurrent_categories.map { Faa.categories[_1].downcase }.to_sentence %> experience.</p>
+      <% end %>
+    </div>
+    <div class="card space-y-3">
+      <% r.rating_progress.each_value do |p| %>
+        <div><div class="flex justify-between text-sm"><span><%= p[:label] %></span><span class="muted"><%= hours(p[:hours]) %> / <%= p[:required] %></span></div><%= progress_bar(p[:percent], color: "bg-indigo-500") %></div>
+      <% end %>
+      <%= link_to "Full report →", report_path, class: "link text-sm" %>
+    </div>
+  </div>
+
+  <div class="mb-6 card">
+    <div class="mb-3 flex items-center justify-between"><h2 class="h2">Clock</h2><%= link_to "New entry", new_work_entry_path, class: "btn btn-sm" %></div>
+    <% if @timers.any? %>
+      <div class="space-y-3"><%= render partial: "timers/timer", collection: @timers %></div>
+    <% else %>
+      <%= render "timers/clock_in" %>
+    <% end %>
+  </div>
+
+  <div class="card overflow-x-auto">
+    <div class="mb-2 flex items-center justify-between"><h2 class="h2">Recent entries</h2><%= link_to "All →", work_entries_path, class: "link text-sm" %></div>
+    <%= render "work_entries/table", entries: @recent %>
+  </div>
+<% elsif current_user.admin? %>
+  <div class="card"><p>You're an administrator. <%= link_to "Manage users and invitations", admin_users_path, class: "link" %>, or <%= link_to "import the FAA aircraft registry", admin_registry_imports_path, class: "link" %>.</p></div>
+<% end %>
+
+<% if current_user.supervisor? && current_user.technicians.any? %>
+  <div class="mt-6 card">
+    <h2 class="h2 mb-2">Your technicians</h2>
+    <ul class="divide-y divide-slate-100 dark:divide-slate-700">
+      <% current_user.technicians.ordered.each do |t| %>
+        <li class="flex items-center justify-between py-2"><span><%= t.name %></span>
+          <span class="flex gap-3 text-sm"><%= link_to "Entries", work_entries_path(technician_id: t.id), class: "link" %><%= link_to "Report", report_path(technician_id: t.id), class: "link" %><%= link_to "Print", logbook_path(technician_id: t.id), class: "link" %></span></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>

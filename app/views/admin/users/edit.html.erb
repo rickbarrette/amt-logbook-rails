@@ -1,0 +1,45 @@
+<% content_for :title, @user.name %>
+<%= render "admin/nav" %>
+<h1 class="h1 mb-4"><%= @user.name %></h1>
+<div class="grid gap-6 lg:grid-cols-2">
+  <div class="card">
+    <%= form_with model: @user, url: admin_user_path(@user), class: "space-y-4" do |f| %>
+      <div><%= f.label :name, class: "label" %><%= f.text_field :name, class: "input" %><%= field_errors(@user, :name) %></div>
+      <div><%= f.label :email_address, "Email", class: "label" %><%= f.email_field :email_address, class: "input" %><%= field_errors(@user, :email_address) %></div>
+      <div class="flex flex-wrap gap-4 text-sm">
+        <label class="flex items-center gap-2"><%= f.check_box :technician, class: "accent-sky-700" %> Technician (keeps a logbook)</label>
+        <label class="flex items-center gap-2"><%= f.check_box :supervisor, class: "accent-sky-700" %> Supervisor (signs entries)</label>
+        <label class="flex items-center gap-2"><%= f.check_box :admin, class: "accent-sky-700" %> Admin</label>
+      </div>
+      <div><%= f.label :rating_goal, "Rating(s) sought", class: "label" %><%= f.select :rating_goal, rating_goal_options, {}, class: "input" %></div>
+      <%= f.submit "Save", class: "btn-primary" %>
+    <% end %>
+  </div>
+  <div class="space-y-6">
+    <% if @user.technician? %>
+      <div class="card">
+        <h2 class="h2 mb-2">Supervisors who can sign for <%= @user.name.split.first %></h2>
+        <ul class="mb-3 divide-y divide-slate-100 dark:divide-slate-700">
+          <% @user.supervisions_as_technician.includes(:supervisor).each do |s| %>
+            <li class="flex items-center justify-between py-2 text-sm"><span><%= s.supervisor.name %> <span class="muted"><%= s.supervisor.certificates.map(&:to_s).join(", ") %></span></span>
+              <%= button_to "Remove", admin_supervision_path(s), method: :delete, class: "btn-danger btn-sm" %></li>
+          <% end %>
+        </ul>
+        <% if @supervisors.any? %>
+          <%= form_with url: admin_user_supervisions_path(@user), class: "flex gap-2" do |f| %>
+            <%= f.select :supervisor_id, @supervisors.map { [_1.name, _1.id] }, {}, class: "input" %><%= f.submit "Add", class: "btn" %>
+          <% end %>
+        <% else %><p class="text-sm muted">No supervisors yet. Mark a user as Supervisor first.</p><% end %>
+      </div>
+    <% end %>
+    <div class="card space-y-2">
+      <h2 class="h2">Account</h2>
+      <% if @user.otp_enabled? %><%= button_to "Reset two-factor (lost phone)", reset_two_factor_admin_user_path(@user), class: "btn", form: { data: { turbo_confirm: "They will set up their authenticator again at next sign-in." } } %><% end %>
+      <% if @user.disabled? %>
+        <%= button_to "Enable account", enable_admin_user_path(@user), class: "btn" %>
+      <% elsif @user != current_user %>
+        <%= button_to "Disable account", disable_admin_user_path(@user), class: "btn-danger", form: { data: { turbo_confirm: "Disable #{@user.name}? Their records are kept." } } %>
+      <% end %>
+    </div>
+  </div>
+</div>

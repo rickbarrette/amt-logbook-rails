@@ -1,0 +1,6 @@
+Hi <%= @invitation.name %>,
+
+<%= @invitation.invited_by&.name || "An administrator" %> invited you to keep your aviation maintenance experience logbook in AMT Logbook.
+
+Create your account here (the link works until <%= @invitation.expires_at.to_date.to_fs(:long) %>):
+<%= invitation_url(@invitation.token) %>

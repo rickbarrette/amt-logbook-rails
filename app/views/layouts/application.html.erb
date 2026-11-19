@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+  <head>
+    <title><%= [content_for(:title), "AMT Logbook"].compact.join(" · ") %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="AMT Logbook">
+    <meta name="theme-color" content="#0c4a6e">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= yield :head %>
+    <%= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="min-h-full bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100" data-controller="pwa">
+    <% if authenticated? %>
+      <header class="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-700 dark:bg-slate-800/95">
+        <div class="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2">
+          <%= link_to root_path, class: "mr-2 flex items-center gap-2 font-bold text-sky-800 dark:text-sky-300" do %>
+            <img src="/icon.svg" alt="" class="h-7 w-7"> <span class="hidden sm:inline">AMT Logbook</span>
+          <% end %>
+          <nav class="hidden flex-1 items-center gap-1 overflow-x-auto md:flex">
+            <%= nav_link "Dashboard", root_path %>
+            <% if current_user.technician? %>
+              <%= nav_link "Entries", work_entries_path %>
+              <%= nav_link "Timer", timers_path %>
+              <%= nav_link "Reports", report_path %>
+              <%= nav_link "Print", logbook_path %>
+            <% end %>
+            <% if current_user.supervisor? %>
+              <%= nav_link "Sign", signatures_path, badge: current_user.entries_to_sign.awaiting_signature.count %>
+            <% end %>
+            <%= nav_link "Aircraft", aircraft_index_path %>
+            <% if current_user.admin? %><%= nav_link "Admin", admin_users_path %><% end %>
+          </nav>
+          <span class="flex-1 md:hidden"></span>
+          <% if current_user.admin? %><%= link_to "Admin", admin_users_path, class: "btn btn-sm md:hidden" %><% end %>
+          <%= link_to current_user.name.split.first, profile_path, class: "btn btn-sm" %>
+          <%= button_to "Sign out", session_path, method: :delete, class: "btn btn-sm", form: { data: { turbo: false } } %>
+        </div>
+        <% if current_user.technician? && (t = current_user.running_timer) %>
+          <%= link_to timers_path, class: "block bg-emerald-600 px-4 py-1.5 text-center text-sm font-medium text-white" do %>
+            Clocked in<%= " on #{t.aircraft.n_number}" if t.aircraft %> ·
+            <span data-controller="clock" data-clock-start-value="<%= t.running_since.to_i * 1000 %>" data-clock-accumulated-value="<%= t.accumulated_seconds %>"><%= duration(t.elapsed_seconds) %></span>
+          <% end %>
+        <% end %>
+      </header>
+    <% end %>
+
+    <main class="mx-auto max-w-6xl px-4 py-6 pb-24">
+      <% if notice %><div class="mb-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200" id="notice"><%= notice %></div><% end %>
+      <% if alert %><div class="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800 dark:bg-red-900/40 dark:text-red-200" id="alert"><%= alert %></div><% end %>
+      <%= yield %>
+    </main>
+
+    <% if authenticated? %>
+      <%# Phone: tab bar at the bottom, within thumb reach. %>
+      <nav class="fixed inset-x-0 bottom-0 z-20 flex border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] md:hidden dark:border-slate-700 dark:bg-slate-800">
+        <% tabs = [["Home", root_path]]
+           tabs += [["Entries", work_entries_path], ["Timer", timers_path], ["Reports", report_path]] if current_user.technician?
+           tabs << ["Sign", signatures_path] if current_user.supervisor?
+           tabs << (current_user.technician? ? ["Print", logbook_path] : ["Aircraft", aircraft_index_path]) %>
+        <% tabs.each do |label, path| %>
+          <% active = path == root_path ? current_page?(root_path) : request.path.start_with?(path) %>
+          <%= link_to label, path, class: "flex-1 py-3 text-center text-xs font-medium #{active ? "text-sky-700 dark:text-sky-300" : "text-slate-500 dark:text-slate-400"}" %>
+        <% end %>
+      </nav>
+    <% end %>
+  </body>
+</html>

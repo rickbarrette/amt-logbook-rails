@@ -1,0 +1,24 @@
+<% content_for :title, "Users" %>
+<%= render "admin/nav" %>
+<div class="mb-4 flex items-center justify-between"><h1 class="h1">Users</h1><%= link_to "Invite someone", new_admin_invitation_path, class: "btn-primary" %></div>
+<div class="card mb-6 overflow-x-auto">
+  <table class="table"><thead><tr><th>Name</th><th>Roles</th><th>Supervisors</th><th>2FA</th><th>Last sign-in</th><th></th></tr></thead>
+    <tbody><% @users.each do |u| %>
+      <tr class="<%= "opacity-50" if u.disabled? %>">
+        <td><div class="font-medium"><%= u.name %></div><div class="text-xs muted"><%= u.email_address %></div></td>
+        <td class="text-sm"><%= [("Admin" if u.admin?), ("Technician" if u.technician?), ("Supervisor" if u.supervisor?)].compact.join(", ") %><%= " · disabled" if u.disabled? %><%= " · locked" if u.locked? %></td>
+        <td class="text-sm"><%= u.supervisors.map(&:name).join(", ").presence || "—" %></td>
+        <td><%= u.otp_enabled? ? "✓" : "—" %></td>
+        <td class="text-sm"><%= u.last_signed_in_at ? l(u.last_signed_in_at, format: :short) : "never" %></td>
+        <td><%= link_to "Edit", edit_admin_user_path(u), class: "link" %></td>
+      </tr>
+    <% end %></tbody></table>
+</div>
+<% if @invitations.any? %>
+  <h2 class="h2 mb-2">Pending invitations</h2>
+  <div class="card overflow-x-auto"><table class="table"><thead><tr><th>Name</th><th>Email</th><th>Expires</th><th></th></tr></thead>
+    <tbody><% @invitations.each do |i| %>
+      <tr><td><%= i.name %></td><td><%= i.email_address %></td><td><%= l(i.expires_at.to_date, format: :short) %></td>
+        <td class="flex gap-3"><%= link_to "Link", admin_invitation_path(i), class: "link" %><%= button_to "Cancel", admin_invitation_path(i), method: :delete, class: "link" %></td></tr>
+    <% end %></tbody></table></div>
+<% end %>

@@ -1,0 +1,54 @@
+# Subject areas (Areas of Operation / Tasks) from the Aviation Mechanic
+# General, Airframe, and Powerplant Airman Certification Standards
+# (FAA-S-ACS-1). Your experience must cover the skill elements of the subject
+# areas for the ratings sought. Codes are stable identifiers used in the
+# database; edit labels freely if the ACS is revised.
+general:
+  label: "General"
+  areas:
+    G-A: "Fundamentals of Electricity and Electronics"
+    G-B: "Aircraft Drawings"
+    G-C: "Weight and Balance"
+    G-D: "Fluid Lines and Fittings"
+    G-E: "Aircraft Materials, Hardware, and Processes"
+    G-F: "Ground Operations and Servicing"
+    G-G: "Cleaning and Corrosion Control"
+    G-H: "Mathematics"
+    G-I: "Regulations, Maintenance Forms, Records, and Publications"
+    G-J: "Physics for Aviation"
+    G-K: "Inspection Concepts and Techniques"
+    G-L: "Human Factors"
+airframe:
+  label: "Airframe"
+  areas:
+    A-I-A: "Metallic Structures"
+    A-I-B: "Non-Metallic Structures"
+    A-I-C: "Flight Controls"
+    A-I-D: "Airframe Inspection"
+    A-II-A: "Landing Gear Systems"
+    A-II-B: "Hydraulic and Pneumatic Power Systems"
+    A-II-C: "Environmental Systems"
+    A-II-D: "Aircraft Instrument Systems"
+    A-II-E: "Communication and Navigation Systems"
+    A-II-F: "Aircraft Fuel Systems"
+    A-II-G: "Aircraft Electrical Systems"
+    A-II-H: "Ice and Rain Control Systems"
+    A-II-I: "Airframe Fire Protection Systems"
+    A-II-J: "Rotorcraft Fundamentals"
+    A-II-K: "Water and Waste Systems"
+powerplant:
+  label: "Powerplant"
+  areas:
+    P-I-A: "Reciprocating Engines"
+    P-I-B: "Turbine Engines"
+    P-I-C: "Engine Inspection"
+    P-II-A: "Engine Instrument Systems"
+    P-II-B: "Engine Fire Protection Systems"
+    P-II-C: "Engine Electrical Systems"
+    P-II-D: "Lubrication Systems"
+    P-II-E: "Ignition and Starting Systems"
+    P-II-F: "Engine Fuel and Fuel Metering Systems"
+    P-II-G: "Reciprocating Engine Induction and Cooling Systems"
+    P-II-H: "Turbine Engine Air Systems"
+    P-II-I: "Engine Exhaust and Reverser Systems"
+    P-II-J: "Propellers"

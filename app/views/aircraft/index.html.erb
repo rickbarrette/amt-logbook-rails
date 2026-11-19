@@ -1,0 +1,15 @@
+<% content_for :title, "Aircraft" %>
+<h1 class="h1 mb-4">Aircraft worked on</h1>
+<div class="card mb-4 max-w-md" data-controller="aircraft-lookup" data-aircraft-lookup-url-value="<%= lookup_aircraft_index_path %>">
+  <label class="label" for="lookup_n">Look up an N-number</label>
+  <input id="lookup_n" class="input uppercase" placeholder="N12345" data-aircraft-lookup-target="input" data-action="input->aircraft-lookup#lookup">
+  <p data-aircraft-lookup-target="result" class="hint"></p>
+</div>
+<div class="card overflow-x-auto">
+  <% if @aircraft.empty? %><p class="muted">No aircraft yet. They're added when you log work on them.</p><% else %>
+  <table class="table"><thead><tr><th>N-number</th><th>Aircraft</th><th>Type</th><th>Engine</th></tr></thead>
+    <tbody><% @aircraft.each do |a| %>
+      <tr><td><%= link_to a.n_number, a, class: "link" %></td><td><%= a.description %></td><td><%= a.aircraft_type %></td><td><%= [a.engine_manufacturer, a.engine_model].compact.join(" ") %></td></tr>
+    <% end %></tbody></table>
+  <% end %>
+</div>

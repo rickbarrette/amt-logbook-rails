@@ -1,0 +1,82 @@
+module Authentication
+  extend ActiveSupport::Concern
+
+  SESSION_IDLE_TIMEOUT = 30.days
+  OTP_PENDING_FOR = 5.minutes
+
+  included do
+    before_action :require_authentication
+    helper_method :authenticated?, :current_user
+  end
+
+  class_methods do
+    def allow_unauthenticated_access(**options)
+      skip_before_action :require_authentication, **options
+    end
+  end
+
+  private
+    def authenticated? = resume_session
+    def current_user = Current.user
+
+    def require_authentication
+      resume_session || request_authentication
+    end
+
+    def resume_session
+      Current.session ||= find_session_by_cookie
+    end
+
+    def find_session_by_cookie
+      session = Session.find_by(id: cookies.signed[:session_id]) if cookies.signed[:session_id]
+      return unless session
+      if session.updated_at < SESSION_IDLE_TIMEOUT.ago || session.user.disabled?
+        session.destroy
+        cookies.delete(:session_id)
+        return
+      end
+      session.touch if session.updated_at < 1.hour.ago
+      session
+    end
+
+    def request_authentication
+      session[:return_to_after_authenticating] = request.url if request.get? || request.head?
+      redirect_to User.exists? ? new_session_path : new_setup_path
+    end
+
+    def after_authentication_url
+      session.delete(:return_to_after_authenticating) || root_url
+    end
+
+    def start_new_session_for(user)
+      user.update_column(:last_signed_in_at, Time.current)
+      user.sessions.create!(user_agent: request.user_agent, ip_address: request.remote_ip).tap do |session|
+        Current.session = session
+        cookies.signed.permanent[:session_id] = { value: session.id, httponly: true, same_site: :lax }
+      end
+    end
+
+    # Straight in, or first the authenticator code if the user has one.
+    def begin_sign_in(user, return_to:)
+      reset_session
+      if user.otp_enabled?
+        session[:otp_user_id] = user.id
+        session[:otp_started_at] = Time.current.to_i
+        session[:return_to_after_authenticating] = return_to
+        redirect_to two_factor_session_path
+      else
+        start_new_session_for user
+        redirect_to return_to
+      end
+    end
+
+    def pending_otp_user
+      return unless (id = session[:otp_user_id]) && Time.zone.at(session[:otp_started_at].to_i) > OTP_PENDING_FOR.ago
+      User.active.find_by(id: id)
+    end
+
+    def terminate_session
+      Current.session.destroy
+      cookies.delete(:session_id)
+    end
+end

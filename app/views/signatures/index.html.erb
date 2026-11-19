@@ -1,0 +1,58 @@
+<% content_for :title, "Sign entries" %>
+<h1 class="h1 mb-1">Entries to sign</h1>
+<p class="mb-4 text-sm muted">Review each entry. Signing certifies that the technician did the work under your supervision; signatures are permanent and sealed.</p>
+
+<% if @certificates.empty? %>
+  <div class="mb-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-900/40 dark:text-amber-100">Add your mechanic certificate on <%= link_to "your profile", profile_path(anchor: "certificates"), class: "link" %> before signing.</div>
+<% end %>
+
+<% if @entries.empty? %>
+  <div class="card muted">Nothing is waiting for your signature.</div>
+<% else %>
+  <%= form_with url: signatures_path, data: { controller: "select-all" } do |f| %>
+    <div class="card mb-4 overflow-x-auto">
+      <table class="table">
+        <thead><tr><th><input type="checkbox" checked data-action="select-all#toggle" aria-label="Select all" class="accent-sky-700"></th><th>Technician</th><th>Date</th><th>Aircraft</th><th>Work</th><th class="text-right">Hours</th><th></th></tr></thead>
+        <tbody>
+          <% @entries.each do |e| %>
+            <tr>
+              <td><%= check_box_tag "entry_ids[]", e.id, true, id: "entry_#{e.id}", class: "accent-sky-700", data: { select_all_target: "box", action: "select-all#update" } %></td>
+              <td class="whitespace-nowrap"><%= e.user.name %></td>
+              <td class="whitespace-nowrap"><%= link_to l(e.performed_on, format: :short), e, class: "link" %></td>
+              <td class="whitespace-nowrap"><%= e.aircraft&.to_s || "—" %></td>
+              <td><p class="whitespace-pre-line"><%= e.description %></p><p class="text-xs muted"><%= [e.category_label, e.ata_label, e.subject_area_labels.join(", ").presence].compact.join(" · ") %></p></td>
+              <td class="text-right tabular-nums"><%= hours(e.hours) %></td>
+              <td>
+                <details class="text-sm"><summary class="cursor-pointer link">Return</summary>
+                  <div class="mt-2 w-56 space-y-2">
+                    <%= text_area_tag "reason_#{e.id}", nil, rows: 2, class: "input", placeholder: "What needs to change?", form: "return_#{e.id}", name: "reason" %>
+                    <button type="submit" form="return_<%= e.id %>" class="btn btn-sm">Return to technician</button>
+                  </div>
+                </details>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+    <div class="card grid gap-3 sm:grid-cols-[1fr_1fr_10rem_auto] sm:items-end">
+      <div><%= label_tag :certificate_id, "Sign with certificate", class: "label" %><%= select_tag :certificate_id, options_for_select(@certificates.map { [_1.to_s, _1.id] }), class: "input" %></div>
+      <div><%= label_tag :password, "Your password", class: "label" %><%= password_field_tag :password, nil, required: true, autocomplete: "current-password", class: "input" %></div>
+      <div><%= label_tag :code, "Authenticator code", class: "label" %><%= text_field_tag :code, nil, required: true, autocomplete: "one-time-code", inputmode: "numeric", class: "input" %></div>
+      <button type="submit" class="btn-primary h-10" <%= "disabled" if @certificates.empty? %>>Sign <span data-select-all-target="count" class="mx-1"></span> selected</button>
+    </div>
+  <% end %>
+  <% @entries.each do |e| %>
+    <%= form_with url: return_entry_signature_path(e), id: "return_#{e.id}", class: "hidden" do %><% end %>
+  <% end %>
+<% end %>
+
+<% if @recent.any? %>
+  <h2 class="h2 mt-8 mb-2">Recently signed</h2>
+  <div class="card overflow-x-auto"><table class="table">
+    <thead><tr><th>Signed</th><th>Technician</th><th>Entry date</th><th>Certificate</th></tr></thead>
+    <tbody><% @recent.each do |s| %>
+      <tr><td><%= l(s.signed_at, format: :short) %></td><td><%= s.work_entry.user.name %></td><td><%= link_to l(s.work_entry.performed_on, format: :short), s.work_entry, class: "link" %></td><td><%= s.certificate_label %></td></tr>
+    <% end %></tbody>
+  </table></div>
+<% end %>

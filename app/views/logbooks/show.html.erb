@@ -1,0 +1,17 @@
+<% content_for :title, "Print logbook" %>
+<h1 class="h1 mb-1">Print logbook</h1>
+<p class="mb-4 text-sm muted">A PDF to print and bring to the FSDO with FAA Form 8610-2. It contains a cover with your statement, a summary against 14 CFR 65.77, a statement page for each supervisor to sign, and every entry with page totals and a column for the supervisor's ink signature beside the electronic one.</p>
+<div class="card max-w-xl">
+  <%= form_with url: export_logbook_path, method: :get, class: "space-y-4", data: { turbo: false } do |f| %>
+    <%= hidden_field_tag :technician_id, @technician.id unless @technician == current_user %>
+    <div class="grid grid-cols-2 gap-3">
+      <div><%= f.label :from, class: "label" %><%= f.date_field :from, class: "input" %></div>
+      <div><%= f.label :to, class: "label" %><%= f.date_field :to, class: "input" %></div>
+    </div>
+    <label class="flex items-center gap-2 text-sm"><%= f.check_box :include_unsigned, class: "accent-sky-700" %> Include entries still waiting for a signature (to be signed in ink)</label>
+    <div class="flex flex-wrap gap-2">
+      <%= f.button "Open PDF", name: "format", value: "pdf", class: "btn-primary", formtarget: "_blank" %>
+      <%= f.button "Download CSV", name: "format", value: "csv", class: "btn" %>
+    </div>
+  <% end %>
+</div>

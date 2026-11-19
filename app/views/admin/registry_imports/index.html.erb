@@ -1,0 +1,19 @@
+<% content_for :title, "Aircraft registry" %>
+<%= render "admin/nav" %>
+<h1 class="h1 mb-1">FAA aircraft registry</h1>
+<p class="mb-4 text-sm muted">N-number lookups use a copy of the FAA Releasable Aircraft database kept on this server, so they're fast and work without the FAA site. <%= number_with_delimiter(@count) %> aircraft loaded.</p>
+<div class="card mb-6 max-w-2xl space-y-3">
+  <ol class="list-decimal space-y-1 pl-5 text-sm">
+    <li>Download <strong>ReleasableAircraft.zip</strong> from the FAA's <a class="link" href="https://www.faa.gov/licenses_certificates/aircraft_certification/aircraft_registry/releasable_aircraft_download" target="_blank" rel="noopener">Releasable Aircraft Database Download</a> page (updated daily).</li>
+    <li>Upload it here. Owner names and addresses are not stored.</li>
+  </ol>
+  <%= form_with url: admin_registry_imports_path, multipart: true, class: "flex flex-wrap gap-2" do |f| %>
+    <%= f.file_field :file, accept: ".zip,.txt", required: true, class: "input w-auto" %><%= f.submit "Import", class: "btn-primary" %>
+  <% end %>
+</div>
+<% if @imports.any? %>
+  <div class="card overflow-x-auto"><table class="table"><thead><tr><th>Uploaded</th><th>File</th><th>Status</th><th>Aircraft</th></tr></thead>
+    <tbody><% @imports.each do |i| %>
+      <tr><td><%= l(i.created_at, format: :short) %></td><td><%= i.filename %></td><td><%= i.status %><%= tag.div(i.error, class: "text-xs text-red-600") if i.error %></td><td><%= number_with_delimiter(i.records_count) if i.records_count %></td></tr>
+    <% end %></tbody></table></div>
+<% end %>

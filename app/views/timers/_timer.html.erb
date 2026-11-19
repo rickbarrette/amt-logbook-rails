@@ -1,0 +1,16 @@
+<div class="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 p-3 dark:border-slate-700 <%= timer.running? ? "bg-emerald-50 dark:bg-emerald-950/40" : "" %>">
+  <div class="min-w-32 font-mono text-2xl tabular-nums" data-controller="clock" data-clock-start-value="<%= timer.running_since ? timer.running_since.to_i * 1000 : 0 %>" data-clock-accumulated-value="<%= timer.accumulated_seconds %>"><%= duration(timer.elapsed_seconds) %></div>
+  <div class="flex-1 text-sm">
+    <div class="font-medium"><%= timer.aircraft&.to_s || "No aircraft" %><%= " · #{Faa.categories[timer.category]}" if timer.category.present? %></div>
+    <div class="muted"><%= timer.description.presence || "—" %> · started <%= l(timer.started_at, format: :short) %><%= " · paused" if timer.paused? %></div>
+  </div>
+  <div class="flex gap-2">
+    <% if timer.running? %>
+      <%= button_to "Pause", pause_timer_path(timer), class: "btn btn-sm" %>
+    <% else %>
+      <%= button_to "Resume", resume_timer_path(timer), class: "btn btn-sm" %>
+    <% end %>
+    <%= button_to "Clock out", stop_timer_path(timer), class: "btn-primary btn-sm" %>
+    <%= button_to "Discard", timer_path(timer), method: :delete, class: "btn-danger btn-sm", form: { data: { turbo_confirm: "Discard this timer without making an entry?" } } %>
+  </div>
+</div>

@@ -1,0 +1,68 @@
+<% content_for :title, "Profile" %>
+<h1 class="h1 mb-4">Profile</h1>
+<div class="grid gap-6 lg:grid-cols-2">
+  <div class="card">
+    <h2 class="h2 mb-3">Details</h2>
+    <%= form_with model: @user, url: profile_path, method: :patch, class: "space-y-4" do |f| %>
+      <div><%= f.label :name, class: "label" %><%= f.text_field :name, class: "input" %><%= field_errors(@user, :name) %></div>
+      <div><span class="label">Email</span><p class="text-sm"><%= @user.email_address %></p></div>
+      <div><%= f.label :time_zone, class: "label" %><%= f.time_zone_select :time_zone, ActiveSupport::TimeZone.us_zones, { include_blank: "Server default (UTC)" }, class: "input" %></div>
+      <% if @user.technician? %>
+        <div><%= f.label :rating_goal, "Rating(s) sought", class: "label" %><%= f.select :rating_goal, rating_goal_options, {}, class: "input" %>
+          <p class="hint">Airframe or powerplant alone: 18 months. Both, concurrently: 30 months (14 CFR 65.77(b)).</p></div>
+        <div><%= f.label :experience_started_on, "Started working in aviation maintenance", class: "label" %><%= f.date_field :experience_started_on, class: "input" %></div>
+      <% end %>
+      <%= f.submit "Save", class: "btn-primary" %>
+    <% end %>
+  </div>
+
+  <div class="space-y-6">
+    <div class="card" id="two-factor">
+      <h2 class="h2 mb-2">Two-factor sign-in</h2>
+      <% if @user.otp_enabled? %>
+        <p class="mb-3 text-sm">On since <%= l(@user.otp_enabled_at.to_date, format: :long) %>. <%= @user.recovery_codes_left %> recovery codes left.</p>
+        <%= form_with url: recovery_codes_two_factor_path, class: "mb-2 flex gap-2" do |f| %>
+          <%= f.text_field :code, placeholder: "Current code", required: true, inputmode: "numeric", class: "input w-36" %><%= f.submit "New recovery codes", class: "btn" %>
+        <% end %>
+        <% unless @user.otp_required? %>
+          <%= form_with url: two_factor_path, method: :delete, class: "flex gap-2" do |f| %>
+            <%= f.text_field :code, placeholder: "Current code", required: true, inputmode: "numeric", class: "input w-36" %><%= f.submit "Turn off", class: "btn-danger" %>
+          <% end %>
+        <% end %>
+      <% else %>
+        <p class="mb-3 text-sm muted">Protect your logbook with an authenticator app.</p>
+        <%= link_to "Set up", new_two_factor_path, class: "btn-primary" %>
+      <% end %>
+    </div>
+
+    <% if @user.supervisor? %>
+      <div class="card" id="certificates">
+        <h2 class="h2 mb-2">Certificates</h2>
+        <p class="mb-3 text-sm muted">Shown with your signature. An airframe-only certificate can sign airframe and general work; powerplant-only, powerplant and general (14 CFR 65.81).</p>
+        <ul class="mb-3 divide-y divide-slate-100 dark:divide-slate-700">
+          <% @user.certificates.each do |c| %>
+            <li class="flex items-center justify-between py-2 text-sm"><span><strong><%= c.short_label %></strong> <%= c.number %><%= " · expires #{l(c.expires_on, format: :long)}" if c.expires_on %><%= tag.span(" expired", class: "text-red-600") if c.expired? %></span>
+              <%= button_to "Remove", certificate_path(c), method: :delete, class: "btn-danger btn-sm" %></li>
+          <% end %>
+        </ul>
+        <%= form_with model: UserCertificate.new, url: certificates_path, class: "grid gap-2 sm:grid-cols-[1fr_8rem_9rem_auto] sm:items-end" do |f| %>
+          <div><%= f.label :kind, class: "label" %><%= f.select :kind, certificate_kind_options, {}, class: "input" %></div>
+          <div><%= f.label :number, class: "label" %><%= f.text_field :number, required: true, class: "input" %></div>
+          <div><%= f.label :expires_on, "Expires (IA)", class: "label" %><%= f.date_field :expires_on, class: "input" %></div>
+          <%= f.submit "Add", class: "btn h-10" %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <div class="card">
+      <h2 class="h2 mb-3">Change password</h2>
+      <%= form_with url: password_profile_path, method: :patch, class: "space-y-3" do |f| %>
+        <%= f.password_field :current_password, placeholder: "Current password", required: true, autocomplete: "current-password", class: "input" %>
+        <%= f.password_field :password, placeholder: "New password (#{User::PASSWORD_MIN}+ characters)", required: true, minlength: User::PASSWORD_MIN, autocomplete: "new-password", class: "input" %>
+        <%= f.password_field :password_confirmation, placeholder: "Confirm new password", required: true, autocomplete: "new-password", class: "input" %>
+        <%= field_errors(@user, :password) %>
+        <%= f.submit "Change password", class: "btn" %>
+      <% end %>
+    </div>
+  </div>
+</div>

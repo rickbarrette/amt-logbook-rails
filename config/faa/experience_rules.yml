@@ -1,0 +1,48 @@
+# Practical-experience rules for the mechanic certificate (14 CFR 65.77(b)).
+#
+# 65.77(b)(1): at least 18 months of practical experience appropriate to the
+#   rating sought (airframe or powerplant).
+# 65.77(b)(2): at least 30 months of practical experience concurrently
+#   performing the duties appropriate to both ratings.
+#
+# The regulation states months, not hours. FAA guidance measures those months
+# against a typical full-time, 40-hour work week, and AC 65-30B describes the
+# 30-month requirement as averaging 160 hours a month. This app therefore
+# reports "equivalent months" = qualifying hours / hours_per_month, next to the
+# calendar months covered. The inspector at the FSDO makes the final call
+# (Form 8610-2 is only signed after they review your records).
+#
+# Change hours_per_month here if your FSDO uses a different figure.
+hours_per_month: 160
+
+ratings:
+  airframe:
+    label: "Airframe"
+    months: 18
+    # Work in these categories counts toward this rating.
+    categories: [airframe, general]
+  powerplant:
+    label: "Powerplant"
+    months: 18
+    categories: [powerplant, general]
+  both:
+    label: "Airframe and Powerplant"
+    months: 30
+    categories: [airframe, powerplant, general]
+    # Concurrent: both kinds of work must actually be present.
+    requires_each_of: [airframe, powerplant]
+
+categories:
+  airframe: "Airframe"
+  powerplant: "Powerplant"
+  general: "General"
+
+# Certificates a supervisor can sign with, and the work they can sign for
+# (14 CFR 65.81: a mechanic supervises work for which they are rated).
+certificate_kinds:
+  AP: { label: "Mechanic, Airframe & Powerplant", short: "A&P", categories: [airframe, powerplant, general] }
+  IA: { label: "Inspection Authorization", short: "IA", categories: [airframe, powerplant, general] }
+  A: { label: "Mechanic, Airframe", short: "A", categories: [airframe, general] }
+  P: { label: "Mechanic, Powerplant", short: "P", categories: [powerplant, general] }
+  REPAIRMAN: { label: "Repairman", short: "Repairman", categories: [airframe, powerplant, general] }
+  REPAIR_STATION: { label: "Repair Station (Part 145) certificate", short: "CRS", categories: [airframe, powerplant, general] }
