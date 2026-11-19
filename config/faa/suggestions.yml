@@ -1,0 +1,309 @@
+# Keyword rules for suggesting an entry's ATA chapter, category and ACS
+# subject areas from its description (EntrySuggester). Each keyword is
+# matched as a whole word or phrase, case-insensitively; a trailing * matches
+# any ending (rivet* = rivet, rivets, riveted). Weights add up per chapter.
+# The technician's own past entries also count (similar descriptions vote
+# for the chapters they used).
+
+# Default category and ACS areas for each chapter.
+chapters:
+  "05": { category: general, areas: [G-K] }
+  "06": { category: general, areas: [G-B] }
+  "07": { category: general, areas: [G-F] }
+  "08": { category: general, areas: [G-C] }
+  "09": { category: general, areas: [G-F] }
+  "10": { category: general, areas: [G-F] }
+  "11": { category: general, areas: [G-I] }
+  "12": { category: general, areas: [G-F] }
+  "20": { category: airframe, areas: [G-E] }
+  "21": { category: airframe, areas: [A-II-C] }
+  "22": { category: airframe, areas: [A-II-D] }
+  "23": { category: airframe, areas: [A-II-E] }
+  "24": { category: airframe, areas: [A-II-G, G-A] }
+  "25": { category: airframe, areas: [A-I-B] }
+  "26": { category: airframe, areas: [A-II-I] }
+  "27": { category: airframe, areas: [A-I-C] }
+  "28": { category: airframe, areas: [A-II-F] }
+  "29": { category: airframe, areas: [A-II-B] }
+  "30": { category: airframe, areas: [A-II-H] }
+  "31": { category: airframe, areas: [A-II-D] }
+  "32": { category: airframe, areas: [A-II-A] }
+  "33": { category: airframe, areas: [A-II-G] }
+  "34": { category: airframe, areas: [A-II-E] }
+  "35": { category: airframe, areas: [A-II-C] }
+  "36": { category: airframe, areas: [A-II-B] }
+  "37": { category: airframe, areas: [A-II-D] }
+  "38": { category: airframe, areas: [A-II-K] }
+  "39": { category: airframe, areas: [A-II-G] }
+  "51": { category: airframe, areas: [A-I-A] }
+  "52": { category: airframe, areas: [A-I-A] }
+  "53": { category: airframe, areas: [A-I-A] }
+  "54": { category: airframe, areas: [A-I-A] }
+  "55": { category: airframe, areas: [A-I-A, A-I-C] }
+  "56": { category: airframe, areas: [A-I-B] }
+  "57": { category: airframe, areas: [A-I-A] }
+  "61": { category: powerplant, areas: [P-II-J] }
+  "62": { category: airframe, areas: [A-II-J] }
+  "63": { category: airframe, areas: [A-II-J] }
+  "64": { category: airframe, areas: [A-II-J] }
+  "65": { category: airframe, areas: [A-II-J] }
+  "67": { category: airframe, areas: [A-II-J] }
+  "49": { category: powerplant, areas: [P-I-B] }
+  "71": { category: powerplant, areas: [P-I-A] }
+  "72": { category: powerplant, areas: [P-I-A] }
+  "73": { category: powerplant, areas: [P-II-F] }
+  "74": { category: powerplant, areas: [P-II-E] }
+  "75": { category: powerplant, areas: [P-II-G] }
+  "76": { category: powerplant, areas: [P-I-A] }
+  "77": { category: powerplant, areas: [P-II-A] }
+  "78": { category: powerplant, areas: [P-II-I] }
+  "79": { category: powerplant, areas: [P-II-D] }
+  "80": { category: powerplant, areas: [P-II-E] }
+  "81": { category: powerplant, areas: [P-I-B] }
+  "83": { category: powerplant, areas: [P-I-A] }
+  "85": { category: powerplant, areas: [P-I-A] }
+
+# keyword: [chapter, weight]  (or [chapter, weight, [extra ACS areas]])
+keywords:
+  annual: ["05", 3, [A-I-D, P-I-C, G-K]]
+  100 hour: ["05", 3, [A-I-D, P-I-C, G-K]]
+  100-hour: ["05", 3, [A-I-D, P-I-C, G-K]]
+  inspection: ["05", 1, [G-K]]
+  inspected: ["05", 1, [G-K]]
+  jack*: ["07", 3]
+  jacking: ["07", 3]
+  weigh*: ["08", 3, [G-C]]
+  weight and balance: ["08", 4, [G-C]]
+  empty weight: ["08", 3, [G-C]]
+  cg: ["08", 2, [G-C]]
+  tow*: ["09", 2]
+  tie down: ["10", 2]
+  tiedown: ["10", 2]
+  storage: ["10", 1]
+  placard*: ["11", 3, [G-I]]
+  decal*: ["11", 2]
+  servic*: ["12", 1, [G-F]]
+  fuel up: ["12", 2]
+  refuel*: ["12", 2, [G-F]]
+  tire pressure: ["12", 3, [G-F]]
+  inflat*: ["12", 2, [G-F]]
+  lubricat*: ["12", 2, [G-F]]
+  grease*: ["12", 2, [G-F]]
+  wash*: ["12", 2, [G-G]]
+  clean*: ["12", 1, [G-G]]
+  corrosion: ["51", 2, [G-G]]
+  safety wire*: ["20", 2, [G-E]]
+  safetied: ["20", 2, [G-E]]
+  cotter: ["20", 1, [G-E]]
+  torqu*: ["20", 1, [G-E]]
+  hardware: ["20", 1, [G-E]]
+  air condition*: ["21", 3]
+  heater: ["21", 3]
+  cabin heat: ["21", 3]
+  vent*: ["21", 1]
+  autopilot: ["22", 4]
+  servo*: ["22", 2]
+  radio*: ["23", 3]
+  comm: ["23", 3]
+  intercom: ["23", 3]
+  antenna*: ["23", 2]
+  headset jack*: ["23", 3]
+  ELT: ["25", 3]
+  battery: ["24", 3, [G-A]]
+  alternator: ["24", 3, [G-A]]
+  generator: ["24", 3, [G-A]]
+  voltage regulator: ["24", 3, [G-A]]
+  wiring: ["24", 2, [G-A]]
+  wire: ["24", 1, [G-A]]
+  circuit breaker*: ["24", 2, [G-A]]
+  bus bar: ["24", 2, [G-A]]
+  seat*: ["25", 3, [A-I-B]]
+  upholster*: ["25", 3, [A-I-B]]
+  carpet*: ["25", 2, [A-I-B]]
+  interior: ["25", 2, [A-I-B]]
+  seat belt*: ["25", 3]
+  fire extinguisher*: ["26", 3]
+  fire detect*: ["26", 3]
+  aileron*: ["27", 4]
+  elevator*: ["27", 4]
+  rudder*: ["27", 4]
+  trim tab*: ["27", 4]
+  trim: ["27", 2]
+  flap: ["27", 3]
+  flaps: ["27", 3]
+  flap track*: ["57", 3, [A-I-C]]
+  control cable*: ["27", 4]
+  cable tension*: ["27", 4]
+  rigg*: ["27", 3]
+  yoke: ["27", 3]
+  pulley*: ["27", 3]
+  bellcrank*: ["27", 3]
+  stall warning: ["27", 2]
+  fuel tank*: ["28", 4]
+  fuel line*: ["28", 3, [G-D]]
+  fuel selector: ["28", 4]
+  fuel quantity: ["28", 3]
+  fuel sump*: ["28", 3]
+  fuel cap*: ["28", 3]
+  bladder: ["28", 3]
+  hydraulic*: ["29", 4]
+  accumulator: ["29", 3]
+  deice*: ["30", 4]
+  de-ice*: ["30", 4]
+  anti-ice: ["30", 4]
+  pitot heat: ["30", 3]
+  windshield wiper*: ["30", 3]
+  hobbs: ["31", 3]
+  tach*: ["77", 2]
+  annunciator*: ["31", 3]
+  clock: ["31", 2]
+  landing gear: ["32", 4]
+  brake*: ["32", 4]
+  tire: ["32", 3]
+  tires: ["32", 3]
+  wheel*: ["32", 3]
+  strut*: ["32", 3]
+  oleo: ["32", 4]
+  shimmy damper: ["32", 4]
+  nose gear: ["32", 4]
+  main gear: ["32", 4]
+  retract*: ["32", 3]
+  caliper*: ["32", 3]
+  brake lining*: ["32", 4]
+  bearing*: ["32", 1]
+  light*: ["33", 2]
+  strobe*: ["33", 3]
+  beacon: ["33", 3]
+  landing light*: ["33", 4]
+  nav light*: ["33", 4]
+  bulb*: ["33", 2]
+  pitot: ["34", 3, [A-II-D]]
+  static: ["34", 2, [A-II-D]]
+  altimeter: ["34", 3, [A-II-D]]
+  transponder: ["34", 4, [A-II-E]]
+  gps: ["34", 3, [A-II-E]]
+  vor: ["34", 3, [A-II-E]]
+  ads-b: ["34", 4, [A-II-E]]
+  compass: ["34", 3, [A-II-D]]
+  airspeed: ["34", 3, [A-II-D]]
+  attitude indicator: ["34", 3, [A-II-D]]
+  heading indicator: ["34", 3, [A-II-D]]
+  oxygen: ["35", 4]
+  pneumatic: ["36", 3]
+  bleed air: ["36", 3]
+  vacuum pump: ["37", 4]
+  vacuum: ["37", 3]
+  lavatory: ["38", 3]
+  water: ["38", 1]
+  rivet*: ["51", 3, [A-I-A]]
+  skin*: ["51", 2, [A-I-A]]
+  sheet metal: ["51", 4, [A-I-A]]
+  doubler*: ["51", 3, [A-I-A]]
+  patch*: ["51", 2, [A-I-A]]
+  crack*: ["51", 2, [A-I-A, G-K]]
+  dent*: ["51", 2, [A-I-A]]
+  stringer*: ["53", 3, [A-I-A]]
+  bulkhead*: ["53", 3, [A-I-A]]
+  former*: ["53", 2, [A-I-A]]
+  longeron*: ["53", 3, [A-I-A]]
+  composite*: ["51", 3, [A-I-B]]
+  fiberglass: ["51", 3, [A-I-B]]
+  fabric: ["51", 3, [A-I-B]]
+  dope: ["51", 2, [A-I-B]]
+  wood: ["51", 2, [A-I-B]]
+  paint*: ["51", 2, [G-G]]
+  primer: ["51", 2, [G-G]]
+  door*: ["52", 3]
+  hinge*: ["52", 2]
+  latch*: ["52", 2]
+  baggage door: ["52", 4]
+  oil door: ["71", 3]
+  fuselage: ["53", 3]
+  belly: ["53", 2]
+  tailcone: ["53", 3]
+  nacelle*: ["54", 4]
+  cowl*: ["71", 3]
+  stabilizer*: ["55", 4]
+  horizontal stab*: ["55", 4]
+  vertical stab*: ["55", 4]
+  fin: ["55", 3]
+  window*: ["56", 3]
+  windshield: ["56", 4]
+  windscreen: ["56", 4]
+  plexiglass: ["56", 3]
+  wing*: ["57", 3, [A-I-A]]
+  spar*: ["57", 3, [A-I-A]]
+  rib*: ["57", 2, [A-I-A]]
+  wingtip*: ["57", 3]
+  propeller*: ["61", 4, [P-II-J]]
+  prop: ["61", 4, [P-II-J]]
+  spinner: ["61", 3, [P-II-J]]
+  governor: ["61", 3, [P-II-J]]
+  prop track*: ["61", 4, [P-II-J]]
+  dress*: ["61", 1, [P-II-J]]
+  blade*: ["61", 2]
+  main rotor: ["62", 5]
+  tail rotor: ["64", 5]
+  transmission: ["63", 3]
+  swashplate: ["67", 5]
+  apu: ["49", 5]
+  engine mount*: ["71", 4]
+  engine: ["72", 1, [P-I-A]]
+  baffle*: ["71", 3, [P-II-G]]
+  cylinder*: ["72", 4, [P-I-A]]
+  compression: ["72", 4, [P-I-A, P-I-C]]
+  borescope: ["72", 3, [P-I-C, G-K]]
+  piston*: ["72", 3, [P-I-A]]
+  valve*: ["72", 2, [P-I-A]]
+  rocker*: ["72", 3, [P-I-A]]
+  pushrod*: ["72", 3, [P-I-A]]
+  crankcase: ["72", 3, [P-I-A]]
+  overhaul*: ["72", 2, [P-I-A]]
+  turbine: ["72", 3, [P-I-B]]
+  hot section: ["72", 4, [P-I-B]]
+  carburetor: ["73", 4, [P-II-F]]
+  carb: ["73", 3, [P-II-F]]
+  fuel injector*: ["73", 4, [P-II-F]]
+  fuel servo: ["73", 4, [P-II-F]]
+  fuel pump*: ["73", 3, [P-II-F]]
+  mixture: ["73", 2, [P-II-F]]
+  idle: ["73", 2, [P-II-F]]
+  magneto*: ["74", 5, [P-II-E]]
+  mag: ["74", 3, [P-II-E]]
+  mags: ["74", 3, [P-II-E]]
+  spark plug*: ["74", 5, [P-II-E]]
+  plugs: ["74", 2, [P-II-E]]
+  ignition: ["74", 4, [P-II-E]]
+  harness*: ["74", 2, [P-II-E]]
+  timing: ["74", 3, [P-II-E]]
+  air filter: ["75", 4, [P-II-G]]
+  induction: ["75", 4, [P-II-G]]
+  intake: ["75", 3, [P-II-G]]
+  carb heat: ["75", 4, [P-II-G]]
+  throttle: ["76", 3]
+  engine control*: ["76", 3]
+  egt: ["77", 4, [P-II-A]]
+  cht: ["77", 4, [P-II-A]]
+  engine monitor: ["77", 4, [P-II-A]]
+  oil pressure gauge: ["77", 4, [P-II-A]]
+  exhaust: ["78", 4, [P-II-I]]
+  muffler: ["78", 4, [P-II-I]]
+  thrust reverser*: ["78", 5, [P-II-I]]
+  oil: ["79", 2, [P-II-D]]
+  oil change: ["79", 5, [P-II-D]]
+  oil filter: ["79", 5, [P-II-D]]
+  oil cooler: ["79", 4, [P-II-D]]
+  oil analysis: ["79", 4, [P-II-D]]
+  filter: ["79", 1]
+  starter: ["80", 5, [P-II-E]]
+  turbocharger: ["81", 5, [P-II-H]]
+  turbo: ["81", 3, [P-II-H]]
+  wastegate: ["81", 5, [P-II-H]]
+  hose*: ["29", 1, [G-D]]
+  fitting*: ["29", 1, [G-D]]
+  fluid line*: ["29", 2, [G-D]]
+  logbook entr*: ["05", 2, [G-I]]
+  return to service: ["05", 2, [G-I]]
+  ad compliance: ["05", 3, [G-I]]
+  airworthiness directive*: ["05", 3, [G-I]]
+  form 337: ["05", 3, [G-I]]

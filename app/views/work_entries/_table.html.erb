@@ -8,7 +8,7 @@
         <tr>
           <td class="whitespace-nowrap"><%= link_to l(e.performed_on, format: :short), e, class: "link" %><div class="mt-1 sm:hidden"><%= status_badge(e.status) %></div></td>
           <td class="hidden whitespace-nowrap sm:table-cell"><%= e.aircraft&.n_number || "—" %></td>
-          <td><div class="line-clamp-2"><%= e.description %></div><div class="text-xs muted"><%= [e.category_label, e.ata_label].compact.join(" · ") %></div></td>
+          <td><div class="line-clamp-2 whitespace-pre-line"><%= MarkdownText.plain(e.description) %></div><div class="text-xs muted"><%= [e.category_label, e.ata_label].compact.join(" · ") %></div></td>
           <td class="text-right tabular-nums"><%= hours(e.hours) %></td>
           <td class="hidden sm:table-cell"><%= status_badge(e.status) %></td>
         </tr>

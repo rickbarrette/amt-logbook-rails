@@ -1,5 +1,14 @@
 # What's new
 
+## 2026.11.3
+
+### Changes
+- **Formatting in entries**: the description has a formatting bar (bold, italic, heading, bulleted and numbered lists, part numbers, links) and a Preview tab. Lists continue when you press Enter. Entries show formatted, and the printed logbook and CSV get clean text with bullets.
+- **"… and add another"** on new entries: saves the entry (records it, or sends it to be signed) and opens a new one with the same date, aircraft, location, work order and supervisor.
+- **Suggested category, ATA chapter and ACS areas**, from what you type in the description and from your past entries. Tap **Use** to fill them in; nothing changes on its own.
+- **Airport database** (OurAirports, the same data SAM uses). It downloads on first start and can be updated from Admin → Airports.
+- **Suggestions from your history**: the location field offers places you've worked first, then airports by code, name or town. The N-number field offers aircraft you've worked on first, then FAA registry matches. A new entry starts with your last location.
+
 ## 2026.11.2
 
 ### Fixes

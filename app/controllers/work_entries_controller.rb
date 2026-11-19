@@ -20,8 +20,14 @@ class WorkEntriesController < ApplicationController
   def new
     @entry = current_user.work_entries.new(performed_on: Date.current, category: "general",
                                            supervisor: current_user.supervisors.one? ? current_user.supervisors.first : nil)
-    if Setting.ink_signatures? && (last = current_user.work_entries.where.not(supervisor_name: nil).recent.first)
-      @entry.assign_attributes(supervisor_name: last.supervisor_name, supervisor_certificate: last.supervisor_certificate)
+    if (from = params[:from].presence && current_user.work_entries.find_by(id: params[:from]))
+      # "…and add another": same day, aircraft, place and supervisor as the one just saved.
+      @entry.assign_attributes(from.slice(:performed_on, :category, :location, :reference, :supervisor_id, :supervisor_name, :supervisor_certificate))
+      @entry.n_number = from.aircraft&.n_number
+    else
+      last = current_user.work_entries.recent.first
+      @entry.location = last&.location
+      @entry.assign_attributes(last.slice(:supervisor_name, :supervisor_certificate)) if Setting.ink_signatures? && last
     end
   end
 
@@ -30,6 +36,7 @@ class WorkEntriesController < ApplicationController
     assign_aircraft
     if @entry.errors.none? && @entry.save
       submit_if_asked
+      return redirect_to(new_work_entry_path(from: @entry.id), notice: "#{saved_notice} Add the next one.") if params[:add_another].present?
       redirect_to @entry, notice: saved_notice
     else
       render :new, status: :unprocessable_entity
@@ -99,8 +106,9 @@ class WorkEntriesController < ApplicationController
     @entry.errors.add(:n_number, e.record.errors[:n_number].first || "isn't valid")
   end
 
+  # The primary button, or "…and add another" (which does the same).
   def submit_if_asked
-    return if params[:submit_for_signature].blank?
+    return if params[:submit_for_signature].blank? && params[:add_another].blank?
     if Setting.ink_signatures?
       @entry.record!
     elsif @entry.supervisor

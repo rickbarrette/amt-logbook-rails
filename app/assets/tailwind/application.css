@@ -22,6 +22,7 @@
   .prose-notes { @apply space-y-2 text-sm; }
   .prose-notes h3 { @apply mt-3 font-semibold text-slate-900 dark:text-white; }
   .prose-notes ul { @apply list-disc space-y-1 pl-5; }
+  .prose-notes ol { @apply list-decimal space-y-1 pl-5; }
   .prose-notes code { @apply rounded bg-slate-100 px-1 text-xs dark:bg-slate-700; }
   .prose-notes a { @apply text-sky-700 hover:underline dark:text-sky-400; }
   .link { @apply text-sky-700 hover:underline dark:text-sky-400; }

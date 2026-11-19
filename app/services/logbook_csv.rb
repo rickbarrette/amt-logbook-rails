@@ -14,7 +14,7 @@ class LogbookCsv
       @entries.each do |e|
         sig = e.signature
         csv << [ e.performed_on.iso8601, e.aircraft&.n_number, e.aircraft&.description, e.category_label, e.hours,
-                 e.ata_label, e.subject_areas.join(" "), e.description, e.reference, e.location, e.status,
+                 e.ata_label, e.subject_areas.join(" "), MarkdownText.plain(e.description), e.reference, e.location, e.status,
                  e.supervisor_display_name, e.supervisor_display_certificate, sig&.signed_at&.iso8601 ].map { safe(_1) }
       end
     end

@@ -18,7 +18,7 @@
 
 <div class="grid gap-4 md:grid-cols-3">
   <div class="card md:col-span-2 space-y-4">
-    <p class="whitespace-pre-line"><%= e.description %></p>
+    <%= markdown(e.description) %>
     <dl class="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
       <div><dt class="muted">Technician</dt><dd><%= e.user.name %></dd></div>
       <div><dt class="muted">Hours</dt><dd><%= hours(e.hours) %></dd></div>

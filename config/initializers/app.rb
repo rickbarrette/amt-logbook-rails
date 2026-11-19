@@ -20,3 +20,11 @@ end
 
 # Shown on the About page (uptime).
 Rails.application.config.x.booted_at = Time.current
+
+# First start: download the airport database (OurAirports) in the background.
+Rails.application.config.after_initialize do
+  next unless defined?(Rails::Server)
+  AirportUpdateJob.ensure_populated
+rescue ActiveRecord::ActiveRecordError, NameError => e
+  Rails.logger.warn("[airports] couldn't check airport data at boot: #{e.message}")
+end

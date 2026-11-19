@@ -1,0 +1,11 @@
+<% content_for :title, "Airports" %>
+<%= render "admin/nav" %>
+<h1 class="h1 mb-1">Airports</h1>
+<p class="mb-4 text-sm muted">Location suggestions come from <a class="link" href="https://ourairports.com/data/" target="_blank" rel="noopener">OurAirports</a> (public domain), the same data SAM uses. It downloads on first start; update it now and then. <%= number_with_delimiter(@count) %> airports loaded.</p>
+<div class="card max-w-2xl space-y-3">
+  <% if (u = @update) %>
+    <p class="text-sm">Last update: <strong><%= u.status %></strong> <%= l(u.created_at, format: :short) %><%= " · #{u.created_count} added, #{u.updated_count} changed, #{u.removed_count} removed" if u.status == "done" %></p>
+    <% if u.error %><p class="text-sm text-red-600"><%= u.error %></p><% end %>
+  <% end %>
+  <%= button_to "Update from OurAirports", admin_airports_path, class: "btn-primary" %>
+</div>

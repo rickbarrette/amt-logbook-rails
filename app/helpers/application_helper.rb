@@ -10,7 +10,7 @@ module ApplicationHelper
 
   # CHANGELOG.md and other trusted Markdown, rendered and sanitized.
   def markdown(text, **opts)
-    html = Commonmarker.to_html(text.to_s, options: { render: { unsafe: false } })
+    html = Commonmarker.to_html(text.to_s, options: { render: { unsafe: false, hardbreaks: true } })
     tag.div(sanitize(html), class: "prose-notes #{opts[:class]}")
   end
 

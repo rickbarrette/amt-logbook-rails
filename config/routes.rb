@@ -21,6 +21,12 @@ Rails.application.routes.draw do
   end
   resources :certificates, only: %i[create destroy]
 
+  scope "suggestions", controller: "suggestions", as: "suggestions" do
+    get :entry
+    get :locations
+    get :aircraft
+  end
+  resource :markdown_preview, only: :create
   resources :work_entries do
     post :submit, on: :member
   end
@@ -58,6 +64,7 @@ Rails.application.routes.draw do
       post :refresh_aircraft, on: :collection
     end
     resource :settings, only: %i[show update]
+    resource :airports, only: %i[show create]
   end
 
   get "up" => "rails/health#show", as: :rails_health_check

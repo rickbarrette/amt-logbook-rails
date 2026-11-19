@@ -20,7 +20,7 @@
               <td class="whitespace-nowrap"><%= e.user.name %></td>
               <td class="whitespace-nowrap"><%= link_to l(e.performed_on, format: :short), e, class: "link" %></td>
               <td class="whitespace-nowrap"><%= e.aircraft&.to_s || "—" %></td>
-              <td><p class="whitespace-pre-line"><%= e.description %></p><p class="text-xs muted"><%= [e.category_label, e.ata_label, e.subject_area_labels.join(", ").presence].compact.join(" · ") %></p></td>
+              <td><%= markdown(e.description) %><p class="text-xs muted"><%= [e.category_label, e.ata_label, e.subject_area_labels.join(", ").presence].compact.join(" · ") %></p></td>
               <td class="text-right tabular-nums"><%= hours(e.hours) %></td>
               <td>
                 <details class="text-sm"><summary class="cursor-pointer link">Return</summary>

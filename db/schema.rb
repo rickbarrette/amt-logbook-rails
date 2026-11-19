@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_19_150000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_20_120000) do
   create_table "aircraft", force: :cascade do |t|
     t.string "n_number", null: false
     t.string "serial_number"
@@ -26,6 +26,40 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_19_150000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["n_number"], name: "index_aircraft_on_n_number", unique: true
+  end
+
+  create_table "airport_updates", force: :cascade do |t|
+    t.string "status", default: "pending", null: false
+    t.integer "created_count"
+    t.integer "updated_count"
+    t.integer "removed_count"
+    t.text "error"
+    t.datetime "started_at"
+    t.datetime "finished_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "airports", force: :cascade do |t|
+    t.string "ident", null: false
+    t.string "code", null: false
+    t.string "gps_code"
+    t.string "local_code"
+    t.string "iata"
+    t.string "name", null: false
+    t.string "kind"
+    t.string "municipality"
+    t.string "region"
+    t.string "country"
+    t.float "latitude"
+    t.float "longitude"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["code"], name: "index_airports_on_code"
+    t.index ["gps_code"], name: "index_airports_on_gps_code"
+    t.index ["iata"], name: "index_airports_on_iata"
+    t.index ["ident"], name: "index_airports_on_ident", unique: true
+    t.index ["local_code"], name: "index_airports_on_local_code"
   end
 
   create_table "entry_signatures", force: :cascade do |t|

@@ -176,7 +176,7 @@ class LogbookPdf
     cat = ->(c) { e.category == c ? hrs(e.minutes) : "" }
     [ e.performed_on.strftime("%m/%d/%Y"), [ e.aircraft&.n_number, e.aircraft&.description ].compact_blank.join("\n"),
       [ e.ata_chapter.presence && "ATA #{e.ata_chapter}", e.subject_areas.join(" ") ].compact_blank.join("\n"),
-      [ e.description, e.reference.presence && "Ref: #{e.reference}" ].compact_blank.join("\n"),
+      [ MarkdownText.plain(e.description), e.reference.presence && "Ref: #{e.reference}" ].compact_blank.join("\n"),
       cat.("airframe"), cat.("powerplant"), cat.("general"),
       [ e.supervisor_display_name, e.supervisor_display_certificate ].compact_blank.join("\n"), (esign unless @ink), "" ].compact.map { txt(_1) }
   end
