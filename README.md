@@ -108,6 +108,35 @@ days or 90 days at most, request bodies capped at 128 MB, passwords and codes
 kept out of the logs, and invitation-only accounts. The first admin needs the
 one-time setup code printed in the server log.
 
+## Command line (for admins)
+
+`bin/amt` runs inside the container, for when nobody can get into Admin in
+the browser, and for jobs that suit a shell:
+
+```sh
+docker exec amt-logbook bin/amt help
+docker exec amt-logbook bin/amt status                    # version, settings, counts
+docker exec amt-logbook bin/amt users                     # accounts, roles, 2FA, lockouts
+docker exec amt-logbook bin/amt reset-password EMAIL      # prints a reset link (an hour)
+docker exec amt-logbook bin/amt reset-2fa EMAIL           # lost phone: removes app and passkeys
+docker exec amt-logbook bin/amt unlock EMAIL              # lift a sign-in lockout
+docker exec amt-logbook bin/amt invite EMAIL "NAME" --admin
+docker exec amt-logbook bin/amt make-admin EMAIL [--off]
+docker exec amt-logbook bin/amt disable|enable|sign-out EMAIL
+docker exec amt-logbook bin/amt settings [require_two_factor everyone]
+docker exec amt-logbook bin/amt verify-signatures         # every seal; exit 1 if any fail
+docker exec amt-logbook bin/amt backup storage/backup.sqlite3
+docker exec amt-logbook bin/amt export EMAIL --format pdf --out storage/logbook.pdf
+docker exec amt-logbook bin/amt import-registry storage/ReleasableAircraft.zip
+docker exec amt-logbook bin/amt update-airports
+docker exec amt-logbook bin/amt setup-code                # fresh install only
+```
+
+Files in `storage/` are in the `amt_storage` volume, so `docker cp` gets them
+in and out (`docker cp amt-logbook:/rails/storage/backup.sqlite3 .`). Changes
+are noted in the app log as `[cli]`. The last active admin can't be disabled
+or demoted.
+
 ## Development
 
 ```sh
