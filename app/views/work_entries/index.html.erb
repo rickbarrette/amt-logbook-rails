@@ -16,7 +16,7 @@
   <%= hidden_field_tag :import_id, params[:import_id] if params[:import_id].present? %>
   <%= f.select :status, ApplicationHelper::STATUS_LABELS.invert, { include_blank: "Any status", selected: params[:status] }, class: "input w-auto" %>
   <%= f.select :category, category_options, { include_blank: "Any category", selected: params[:category] }, class: "input w-auto" %>
-  <%= f.text_field :n_number, value: params[:n_number], placeholder: "N-number", class: "input w-32 uppercase" %>
+  <%= f.text_field :n_number, value: params[:n_number], placeholder: "N-number", class: "input w-32 uppercase placeholder:normal-case" %>
   <%= f.submit "Filter", class: "btn" %>
 <% end %>
 <div class="card overflow-x-auto"><%= render "table", entries: @entries %></div>

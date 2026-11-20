@@ -1,5 +1,21 @@
 # What's new
 
+## 2026.11.4
+
+### Changes
+- **Fill in an entry while the clock runs**: clocking in opens a draft entry. Write it up any time (from the timer, the dashboard, or the green "Clocked in" bar); clocking out sets its hours. "Clock in & fill in" opens it straight away.
+- **Import entries** (Entries → Import): a spreadsheet saved as CSV (match its columns, check a preview, then import) or a full export from AMT Logbook. Entries arrive as drafts to check, then record or send them for signature in one go. A missing category or ATA chapter is suggested, rows already in your logbook are skipped, and an import can be undone.
+- **Full export** (Export page): your whole logbook as one file, including the electronic signature records, to keep as a backup or import on another server.
+- **Export filters**: choose dates, a category, and which entries (signed, awaiting signature, or everything) for the PDF and CSV.
+- **Better suggestions**: about 640 maintenance terms across every ATA chapter, more accurate chapters and ACS areas (for example 100-hour inspections are ATA 05, mixture cables 76), and a hint when one entry covers two unrelated jobs.
+- The "Print" link is now **Export**.
+
+### Fixes
+- Dropdowns, text boxes and buttons are the same height, so the clock-in and filter rows line up (most visible in Safari). Dropdowns follow dark mode.
+
+### For administrators
+- **Admin → Backup**: download a copy of the whole database after confirming your password and authenticator code (or a fresh single sign-on). Restore steps are on that page; a restore needs the same `SECRET_KEY_BASE`.
+
 ## 2026.11.3
 
 ### Changes
