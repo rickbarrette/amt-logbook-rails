@@ -9,7 +9,8 @@ class SuggestionsController < ApplicationController
     return render(json: { found: false }) unless s
     render json: { found: true, ata_chapter: s.ata_chapter, ata_label: Faa.ata_label(s.ata_chapter),
                    category: s.category, category_label: Faa.categories[s.category], confidence: s.confidence,
-                   subject_areas: s.subject_areas.map { { code: _1, label: Faa.subject_area_label(_1) } } }
+                   subject_areas: s.subject_areas.map { { code: _1, label: Faa.subject_area_label(_1) } },
+                   also: s.also && { ata_chapter: s.also, ata_label: Faa.ata_label(s.also) } }
   end
 
   # GET /suggestions/locations?q=… — places you've logged first, then airports.

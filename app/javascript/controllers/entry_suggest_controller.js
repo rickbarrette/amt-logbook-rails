@@ -3,7 +3,7 @@ import { Controller } from "@hotwired/stimulus"
 // Suggests a category, ATA chapter and ACS subject areas from the
 // description as it's typed; "Use" fills them in (nothing changes on its own).
 export default class extends Controller {
-  static targets = ["description", "chip", "text"]
+  static targets = ["description", "chip", "text", "also"]
   static values = { url: String }
 
   connect() { if (this.descriptionTarget.value.trim()) this.fetch() }
@@ -26,6 +26,10 @@ export default class extends Controller {
     const s = this.suggestion
     const areas = s.subject_areas.map((a) => a.label).join(", ")
     this.textTarget.textContent = `${s.category_label} · ATA ${s.ata_label}${areas ? ` · ${areas}` : ""}`
+    if (this.hasAlsoTarget) {
+      this.alsoTarget.textContent = s.also ? `Also sounds like ATA ${s.also.ata_label} work: consider logging that as its own entry, so each counts toward its own subject area.` : ""
+      this.alsoTarget.hidden = !s.also
+    }
     this.chipTarget.hidden = false
   }
 
