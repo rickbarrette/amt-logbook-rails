@@ -1,5 +1,25 @@
 # What's new
 
+## 2026.11.5
+
+### Changes
+- **Passkeys**: sign in with Face ID, Touch ID, Windows Hello, your phone or a security key (Profile → Passkeys). A passkey counts as both factors, can be the second step after your password, and confirms signatures and backups in place of your password and code.
+- **Signed-in devices** on your profile, with **Sign out other devices**. Sign-ins now end after 30 days unused or 90 days at most.
+- **Forgot password** pages match the app. A reset works for an hour, unlocks a locked account, and signs out every device.
+
+### Fixes
+- The printed logbook no longer adds pages holding only the "Technician signature" and "Date" lines when a page of entries is full.
+- The supervisor statement leaves the name blank when no supervisor was entered (it said "Supervisor"), and ink-only logbooks say "recorded" rather than "signed".
+- Date boxes line up in Safari, and N-number hints aren't in capitals.
+- Changing an aircraft's details, or a registry update, no longer makes signed entries show as altered.
+
+### For administrators
+- **Ready to face the internet without Authentik** (see "Running it on the internet" in the README): requests for any hostname other than `APP_HOST`/`APP_URL` are refused, so check `APP_HOST` matches your address. Also new: a strict Content-Security-Policy, request bodies capped at 128 MB, and authenticator, recovery and setup codes kept out of the logs.
+- **Email** now works when `SMTP_ADDRESS` (and `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `MAIL_FROM`) are set. Without it, **Admin → Users → Make a password reset link**.
+- **Two-factor for everyone** (Admin → Settings). An authenticator app or a passkey both count; Reset two-factor removes both.
+- Only admins and technicians who logged work on an aircraft can change its details.
+- **Command line**: `docker exec <container> bin/amt help`: reset passwords and two-factor, unlock, invite, verify every signature, back up, export, import the FAA registry from a file, and more.
+
 ## 2026.11.4
 
 ### Changes
