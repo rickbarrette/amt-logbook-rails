@@ -30,7 +30,7 @@ class TwoFactorsController < ApplicationController
   end
 
   def destroy
-    return redirect_to(profile_path, alert: "Supervisors and admins must keep two-factor on.") if current_user.otp_required?
+    return redirect_to(profile_path, alert: "You must keep two-factor on: add a passkey first, or keep the authenticator.") if current_user.otp_required? && current_user.passkeys.none?
     return redirect_to(profile_path, alert: "That code didn't work.") unless current_user.verify_second_factor(params[:code])
     current_user.disable_otp!
     redirect_to profile_path, notice: "Two-factor is off."

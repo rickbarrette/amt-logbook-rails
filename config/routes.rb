@@ -21,6 +21,15 @@ Rails.application.routes.draw do
     delete :other_sessions
   end
   resources :certificates, only: %i[create destroy]
+  resources :passkeys, only: %i[create destroy] do
+    post :options, on: :collection
+  end
+  resource :passkey_session, only: :create do
+    post :options
+  end
+  resource :passkey_confirmation, only: :create do
+    post :options
+  end
 
   scope "suggestions", controller: "suggestions", as: "suggestions" do
     get :entry

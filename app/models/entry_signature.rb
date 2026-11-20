@@ -7,7 +7,7 @@
 # that content) so any later change shows; seal is an HMAC over the signature
 # keyed by this server, so the record can't be edited unnoticed either.
 class EntrySignature < ApplicationRecord
-  AUTH_METHODS = { "password_totp" => "password + authenticator", "sso" => "single sign-on" }.freeze
+  AUTH_METHODS = { "password_totp" => "password + authenticator", "sso" => "single sign-on", "passkey" => "passkey" }.freeze
 
   belongs_to :work_entry
   belongs_to :user, optional: true

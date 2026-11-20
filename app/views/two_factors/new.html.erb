@@ -1,4 +1,10 @@
 <% content_for :title, "Two-factor sign-in" %>
+<div class="mx-auto mb-6 max-w-md card space-y-3">
+  <h1 class="h2">Add a passkey</h1>
+  <p class="text-sm muted">The simplest option: sign in with Face ID, Touch ID, Windows Hello or your phone's screen lock. Nothing to type, and it can't be phished.</p>
+  <%= render "passkeys/add", return_to: "two_factor" %>
+</div>
+<p class="mx-auto mb-6 max-w-md text-center text-sm muted">or</p>
 <div class="mx-auto max-w-md card">
   <h1 class="h2 mb-2">Set up an authenticator app</h1>
   <ol class="mb-4 list-decimal space-y-1 pl-5 text-sm muted">

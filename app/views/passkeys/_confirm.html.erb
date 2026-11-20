@@ -1,0 +1,8 @@
+<%# Confirm it's you with a passkey (signing entries, downloading a backup). %>
+<% if current_user.passkeys.any? && !passkey_confirmed? %>
+  <span data-controller="passkey" data-passkey-mode-value="confirm" data-passkey-options-url-value="<%= options_passkey_confirmation_path %>"
+        data-passkey-url-value="<%= passkey_confirmation_path %>" class="inline-flex flex-wrap items-center gap-2">
+    <button type="button" class="btn btn-sm" data-passkey-target="button" data-action="passkey#start">Confirm with a passkey</button>
+    <span class="text-sm text-red-700 dark:text-red-300" data-passkey-target="error" hidden></span>
+  </span>
+<% end %>

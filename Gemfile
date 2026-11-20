@@ -66,6 +66,7 @@ end
 
 gem "rotp", "~> 6.3" # authenticator app (TOTP) codes
 gem "rqrcode", "~> 3.1" # QR code for setting up the authenticator
+gem "webauthn", "~> 3.4" # passkeys
 gem "prawn", "~> 2.5" # printable logbook
 gem "prawn-table", "~> 0.2"
 gem "chartkick", "~> 5.2" # statistics charts

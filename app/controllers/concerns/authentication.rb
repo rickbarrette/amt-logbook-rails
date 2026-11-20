@@ -60,7 +60,7 @@ module Authentication
     # Straight in, or first the authenticator code if the user has one.
     def begin_sign_in(user, return_to:)
       reset_session
-      if user.otp_enabled?
+      if user.second_factor?
         session[:otp_user_id] = user.id
         session[:otp_started_at] = Time.current.to_i
         session[:return_to_after_authenticating] = return_to

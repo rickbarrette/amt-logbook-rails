@@ -22,6 +22,7 @@ class SessionsController < ApplicationController
   def two_factor
     redirect_to new_session_path, alert: "Sign in again." unless pending_otp_user
   end
+  helper_method :pending_otp_user
 
   def verify_two_factor
     user = pending_otp_user

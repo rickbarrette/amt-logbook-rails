@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_21_010000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_21_020000) do
   create_table "aircraft", force: :cascade do |t|
     t.string "n_number", null: false
     t.string "serial_number"
@@ -114,6 +114,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_21_010000) do
     t.index ["invited_by_id"], name: "index_invitations_on_invited_by_id"
     t.index ["token"], name: "index_invitations_on_token", unique: true
     t.index ["user_id"], name: "index_invitations_on_user_id"
+  end
+
+  create_table "passkeys", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "external_id", null: false
+    t.text "public_key", null: false
+    t.bigint "sign_count", default: 0, null: false
+    t.string "name", null: false
+    t.datetime "last_used_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["external_id"], name: "index_passkeys_on_external_id", unique: true
+    t.index ["user_id"], name: "index_passkeys_on_user_id"
   end
 
   create_table "registry_imports", force: :cascade do |t|
@@ -221,8 +234,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_21_010000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "sso_uid"
+    t.string "webauthn_id"
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
     t.index ["sso_uid"], name: "index_users_on_sso_uid", unique: true
+    t.index ["webauthn_id"], name: "index_users_on_webauthn_id", unique: true
   end
 
   create_table "work_entries", force: :cascade do |t|
@@ -261,6 +276,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_21_010000) do
   add_foreign_key "entry_signatures", "work_entries"
   add_foreign_key "invitations", "users"
   add_foreign_key "invitations", "users", column: "invited_by_id"
+  add_foreign_key "passkeys", "users"
   add_foreign_key "registry_imports", "users"
   add_foreign_key "sessions", "users"
   add_foreign_key "supervisions", "users", column: "supervisor_id"

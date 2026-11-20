@@ -8,7 +8,7 @@
         <td><div class="font-medium"><%= u.name %></div><div class="text-xs muted"><%= u.email_address %></div></td>
         <td class="text-sm"><%= [("Admin" if u.admin?), ("Technician" if u.technician?), ("Supervisor" if u.supervisor?)].compact.join(", ") %><%= " · disabled" if u.disabled? %><%= " · locked" if u.locked? %></td>
         <td class="text-sm"><%= u.supervisors.map(&:name).join(", ").presence || "—" %></td>
-        <td><%= u.otp_enabled? ? "✓" : "—" %></td>
+        <td><%= [("app" if u.otp_enabled?), ("passkey" if u.passkeys.any?)].compact.join(" + ").presence || "—" %></td>
         <td class="text-sm"><%= u.last_signed_in_at ? l(u.last_signed_in_at, format: :short) : "never" %></td>
         <td><%= link_to "Edit", edit_admin_user_path(u), class: "link" %></td>
       </tr>

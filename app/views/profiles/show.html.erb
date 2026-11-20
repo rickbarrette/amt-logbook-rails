@@ -57,6 +57,23 @@
       <% end %>
     </div>
 
+    <div class="card space-y-3" id="passkeys">
+      <h2 class="h2">Passkeys</h2>
+      <p class="text-sm muted">Sign in with Face ID, Touch ID, Windows Hello, your phone or a security key instead of your password and code.<%= " A passkey also counts as your second factor." if @user.otp_required? %></p>
+      <% if @user.passkeys.any? %>
+        <ul class="divide-y divide-slate-200 text-sm dark:divide-slate-700">
+          <% @user.passkeys.ordered.each do |pk| %>
+            <li class="flex items-center justify-between gap-3 py-2">
+              <span><span class="font-medium"><%= pk.name %></span>
+                <span class="block text-xs muted">Added <%= l(pk.created_at.to_date, format: :long) %> · <%= pk.last_used_at ? "last used #{time_ago_in_words(pk.last_used_at)} ago" : "not used yet" %></span></span>
+              <%= button_to "Remove", passkey_path(pk), method: :delete, class: "btn-danger btn-sm", form: { data: { turbo_confirm: "Remove “#{pk.name}”? It won't sign you in any more." } } %>
+            </li>
+          <% end %>
+        </ul>
+      <% end %>
+      <%= render "passkeys/add" %>
+    </div>
+
     <% if @user.supervisor? && Setting.electronic_signatures? %>
       <div class="card" id="certificates">
         <h2 class="h2 mb-2">Certificates</h2>

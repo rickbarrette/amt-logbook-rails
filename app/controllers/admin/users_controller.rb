@@ -2,7 +2,7 @@ class Admin::UsersController < Admin::BaseController
   before_action :set_user, except: :index
 
   def index
-    @users = User.ordered.includes(:supervisors, :certificates)
+    @users = User.ordered.includes(:supervisors, :certificates, :passkeys)
     @invitations = Invitation.pending.order(:created_at)
   end
 
@@ -37,7 +37,7 @@ class Admin::UsersController < Admin::BaseController
 
   # Lost phone: they set up their authenticator again at next sign-in.
   def reset_two_factor
-    @user.disable_otp!
+    @user.reset_second_factors!
     @user.sessions.destroy_all
     redirect_to edit_admin_user_path(@user), notice: "Two-factor reset for #{@user.name}."
   end

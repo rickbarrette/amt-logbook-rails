@@ -1,0 +1,15 @@
+<%# Add a passkey. return_to: "two_factor" when it's how a required second factor is set up. %>
+<% needs_password = Current.session.created_at < PasskeysController::RECENT_SIGN_IN.ago && !sso_confirmed? %>
+<div data-controller="passkey" data-passkey-mode-value="register" data-passkey-options-url-value="<%= options_passkeys_path %>"
+     data-passkey-url-value="<%= passkeys_path %>" data-passkey-return-to-value="<%= local_assigns[:return_to] %>" class="space-y-3">
+  <div class="grid gap-3 <%= "sm:grid-cols-2" if needs_password %>">
+    <div><label class="label" for="passkey_name">Name it (optional)</label>
+      <input id="passkey_name" type="text" maxlength="60" placeholder="e.g. My iPhone" class="input" data-passkey-target="name"></div>
+    <% if needs_password %>
+      <div><label class="label" for="passkey_password">Your password</label>
+        <input id="passkey_password" type="password" autocomplete="current-password" class="input" data-passkey-target="password"></div>
+    <% end %>
+  </div>
+  <button type="button" class="btn-primary" data-passkey-target="button" data-action="passkey#start">Add a passkey</button>
+  <p class="text-sm text-red-700 dark:text-red-300" data-passkey-target="error" hidden></p>
+</div>

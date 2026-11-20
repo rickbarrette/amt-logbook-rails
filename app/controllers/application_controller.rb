@@ -1,5 +1,6 @@
 class ApplicationController < ActionController::Base
   include Authentication
+  include PasskeyCeremonies
   allow_browser versions: :modern
   stale_when_importmap_changes
 
@@ -10,7 +11,7 @@ class ApplicationController < ActionController::Base
 
   # Admins and supervisors must turn on an authenticator before going further.
   def require_two_factor_setup
-    return unless current_user&.otp_required? && !current_user.otp_enabled? && !Current.session&.via_sso?
+    return unless current_user&.otp_required? && !current_user.second_factor? && !Current.session&.via_sso?
     redirect_to new_two_factor_path, alert: "Set up an authenticator app to continue. Supervisors and admins need two-factor sign-in."
   end
 
@@ -44,10 +45,12 @@ class ApplicationController < ActionController::Base
       session[:sso_signed_in_at].to_i > Sso::REAUTH_FOR.ago.to_i
   end
 
-  # Before something sensitive: a fresh SSO sign-in, or password plus
-  # authenticator code from the form. Returns how, or nil.
+  # Before something sensitive: a fresh SSO sign-in or passkey confirmation,
+  # or password plus authenticator code from the form. Returns how, or nil.
+  # A passkey confirmation is used up by the action it confirms.
   def confirm_identity
     return "sso" if sso_confirmed?
+    return "passkey" if passkey_confirmed? && session.delete(:passkey_confirmed_at)
     ok = current_user.authenticate(params[:password].to_s) && current_user.verify_second_factor(params[:code])
     current_user.register_failed_sign_in! unless ok
     ok ? "password_totp" : nil

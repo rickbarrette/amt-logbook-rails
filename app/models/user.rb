@@ -6,6 +6,7 @@ class User < ApplicationRecord
   has_many :work_entries, dependent: :destroy
   has_many :timers, dependent: :destroy
   has_many :entry_imports, dependent: :destroy
+  has_many :passkeys, dependent: :destroy
   has_many :entry_signatures, dependent: :nullify
 
   # Supervisors who can sign my entries, and technicians whose entries I sign.
@@ -82,6 +83,22 @@ class User < ApplicationRecord
   # sign-on are exempt (the provider handles MFA); see ApplicationController.
   def otp_required? = admin? || (supervisor? && Setting.electronic_signatures?) || Setting.two_factor_for_everyone?
   def sso_linked? = sso_uid.present?
+
+  # An authenticator app or a passkey: either is a second factor.
+  def second_factor? = otp_enabled? || passkeys.exists?
+
+  # The random, stable id passkeys store for this account (WebAuthn user handle).
+  def webauthn_handle
+    self.webauthn_id ||= Base64.urlsafe_encode64(SecureRandom.random_bytes(32), padding: false).tap { update_column(:webauthn_id, _1) }
+  end
+
+  # Lost phone: authenticator and passkeys both go.
+  def reset_second_factors!
+    transaction do
+      disable_otp!
+      passkeys.destroy_all
+    end
+  end
 
   def self.new_otp_secret = ROTP::Base32.random
 

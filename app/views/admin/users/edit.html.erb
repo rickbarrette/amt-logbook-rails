@@ -42,7 +42,7 @@
       <% elsif !@user.disabled? && @user != current_user %>
         <%= button_to "Make a password reset link", password_reset_link_admin_user_path(@user), class: "btn" %>
       <% end %>
-      <% if @user.otp_enabled? %><%= button_to "Reset two-factor (lost phone)", reset_two_factor_admin_user_path(@user), class: "btn", form: { data: { turbo_confirm: "They will set up their authenticator again at next sign-in." } } %><% end %>
+      <% if @user.second_factor? %><%= button_to "Reset two-factor (lost phone)", reset_two_factor_admin_user_path(@user), class: "btn", form: { data: { turbo_confirm: "Removes their authenticator app and passkeys; they set two-factor up again at next sign-in." } } %><% end %>
       <% if @user.disabled? %>
         <%= button_to "Enable account", enable_admin_user_path(@user), class: "btn" %>
       <% elsif @user != current_user %>

@@ -1,9 +1,17 @@
-<% content_for :title, "Authenticator code" %>
-<div class="mx-auto mt-10 max-w-sm card">
-  <h1 class="h2 mb-2">Authenticator code</h1>
-  <p class="mb-4 text-sm muted">Enter the 6-digit code from your authenticator app, or one of your recovery codes.</p>
-  <%= form_with url: two_factor_session_path, class: "space-y-4" do |f| %>
-    <%= f.text_field :code, required: true, autofocus: true, autocomplete: "one-time-code", inputmode: "numeric", class: "input text-center text-lg tracking-widest" %>
-    <%= f.submit "Verify", class: "btn-primary w-full" %>
+<% content_for :title, "Second step" %>
+<% user = pending_otp_user %>
+<div class="mx-auto mt-10 max-w-sm card space-y-4">
+  <h1 class="h2">Confirm it's you</h1>
+  <% if user&.passkeys&.any? %>
+    <p class="text-sm muted">Use your passkey<%= " or a code from your authenticator app" if user.otp_enabled? %>.</p>
+    <%= render "passkeys/sign_in", primary: true %>
   <% end %>
+  <% if user&.otp_enabled? %>
+    <% if user.passkeys.any? %><p class="text-center text-xs muted">or</p><% else %><p class="text-sm muted">Enter the 6-digit code from your authenticator app, or one of your recovery codes.</p><% end %>
+    <%= form_with url: two_factor_session_path, class: "space-y-4" do |f| %>
+      <%= f.text_field :code, required: true, autofocus: user.passkeys.none?, autocomplete: "one-time-code", inputmode: "numeric", placeholder: "Authenticator code", class: "input text-center text-lg tracking-widest" %>
+      <%= f.submit "Verify", class: user.passkeys.any? ? "btn w-full" : "btn-primary w-full" %>
+    <% end %>
+  <% end %>
+  <p class="text-center text-sm"><%= link_to "Start over", new_session_path, class: "link" %></p>
 </div>

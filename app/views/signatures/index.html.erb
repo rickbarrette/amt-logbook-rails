@@ -39,6 +39,8 @@
       <div><%= label_tag :certificate_id, "Sign with certificate", class: "label" %><%= select_tag :certificate_id, options_for_select(@certificates.map { [_1.to_s, _1.id] }), class: "input" %></div>
       <% if @sso_confirmed %>
         <p class="text-sm text-emerald-700 sm:col-span-2 dark:text-emerald-400">✓ Confirmed with <%= Sso.label %>. Sign within <%= Sso::REAUTH_FOR.in_minutes.to_i %> minutes of confirming.</p>
+      <% elsif passkey_confirmed? %>
+        <p class="text-sm text-emerald-700 sm:col-span-2 dark:text-emerald-400">✓ Confirmed with your passkey. Sign within <%= PasskeyCeremonies::CONFIRMED_FOR.in_minutes.to_i %> minutes.</p>
       <% else %>
         <div><%= label_tag :password, "Your password", class: "label" %><%= password_field_tag :password, nil, required: true, autocomplete: "current-password", class: "input" %></div>
         <div><%= label_tag :code, "Authenticator code", class: "label" %><%= text_field_tag :code, nil, required: true, autocomplete: "one-time-code", inputmode: "numeric", class: "input" %></div>
@@ -50,6 +52,12 @@
     <div class="mt-3 flex items-center gap-3 text-sm">
       <span class="muted">Or confirm who you are with <%= Sso.label %> instead of your password and code:</span>
       <%= button_to "Confirm with #{Sso.label}", "/auth/oidc", params: { prompt: "login" }, class: "btn btn-sm", data: { turbo: false } %>
+    </div>
+  <% end %>
+  <% if current_user.passkeys.any? && !passkey_confirmed? && !@sso_confirmed %>
+    <div class="mt-3 flex flex-wrap items-center gap-3 text-sm">
+      <span class="muted">Or confirm with a passkey instead of your password and code:</span>
+      <%= render "passkeys/confirm" %>
     </div>
   <% end %>
   <% @entries.each do |e| %>

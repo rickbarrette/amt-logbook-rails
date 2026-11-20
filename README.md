@@ -34,6 +34,10 @@ Rails app you can install on your phone (PWA).
   names and addresses are not stored.
 - **Accounts**: admins invite people. Authenticator-app 2FA, which supervisors
   and admins must use. Lockout after repeated failures.
+- **Passkeys**: sign in with Face ID, Touch ID, Windows Hello, a phone or a
+  security key, with nothing to type and nothing to phish. A passkey counts as
+  both factors, works as the second step after a password, and confirms
+  signatures and backups in place of the password and code.
 
 ## How experience is measured
 
@@ -82,7 +86,10 @@ The app's own sign-in is built to face the internet, with or without
 Authentik (or another forward-auth proxy) in front:
 
 - **Two-factor for everyone**: Admin → Settings → Two-factor sign-in →
-  Everyone. Admins and supervisors always need it.
+  Everyone. Admins and supervisors always need it. An authenticator app or a
+  passkey both count.
+- **Passkeys** are tied to the public address (`APP_URL` or `APP_HOST`):
+  changing the hostname later means everyone adds their passkeys again.
 - **One hostname**: set `APP_HOST` (or `APP_URL`). Requests for any other
   host are refused, so a forged `Host` header can't redirect anyone. Add
   others with `APP_EXTRA_HOSTS` (comma-separated).
