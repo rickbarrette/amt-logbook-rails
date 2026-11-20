@@ -11,11 +11,15 @@
 #   OIDC_ADMIN_GROUP / PASSWORD_LOGIN                                       # (see docs/authentik.md)
 #   TRAEFIK_NETWORK=proxy  TRAEFIK_ENTRYPOINT=websecure  TRAEFIK_CERTRESOLVER=letsencrypt
 #   AUTHENTIK_MIDDLEWARE=authentik@docker # your forward-auth middleware
+#   TRAEFIK_MIDDLEWARES=amt-logbook-limits@docker   # without Authentik in front (see below)
 #   IMAGE_TAG=latest                      # or a release (2026.11.0) or commit (7688b0d)
 #
 # First start: create the admin with the setup code from the container log
 # (Portainer → Containers → amt-logbook → Logs, search "Setup code").
 # Authentik: see docs/authentik.md for the paths to leave unauthenticated.
+# Without Authentik (the app's own sign-in faces the internet): set
+# TRAEFIK_MIDDLEWARES=amt-logbook-limits@docker, and in Admin → Settings
+# require two-factor for everyone. See "Running it on the internet" in the README.
 services:
   web:
     image: barrettefab/amt-logbook-rails:${IMAGE_TAG:-latest}
@@ -48,13 +52,15 @@ services:
       timeout: 5s
       retries: 3
     labels:
-      - com.centurylinklabs.watchtower.enable=true
+      - com.centurylinklabs.watchtower.enable=false
       - traefik.enable=true
       - traefik.docker.network=${TRAEFIK_NETWORK:-proxy}
       - traefik.http.routers.amt-logbook.rule=Host(`${APP_HOST}`)
       - traefik.http.routers.amt-logbook.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
       - traefik.http.routers.amt-logbook.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
-      - traefik.http.routers.amt-logbook.middlewares=${AUTHENTIK_MIDDLEWARE:-authentik@docker}
+      - traefik.http.routers.amt-logbook.middlewares=${TRAEFIK_MIDDLEWARES:-amt-logbook-limits@docker,${AUTHENTIK_MIDDLEWARE:-authentik@docker}}
+      # Refuse request bodies over 128 MB at the proxy (the FAA registry zip is ~60 MB).
+      - traefik.http.middlewares.amt-logbook-limits.buffering.maxRequestBodyBytes=134217728
       - traefik.http.services.amt-logbook.loadbalancer.server.port=80
 volumes:
   amt_storage:

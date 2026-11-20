@@ -63,6 +63,6 @@
 <div class="card mt-6 overflow-x-auto">
   <h2 class="h2 mb-2">Supervisors</h2>
   <table class="table"><thead><tr><th>Supervisor</th><th>Certificate</th><th>Period</th><th class="text-right">Hours</th></tr></thead>
-    <tbody><% r.signers.each do |s| %><tr><td><%= s[:name] %></td><td><%= s[:certificate] %></td><td><%= l(s[:from], format: :short) %> – <%= l(s[:to], format: :short) %></td><td class="text-right"><%= hours(s[:hours]) %></td></tr><% end %></tbody>
+    <tbody><% r.signers.each do |s| %><tr><td><%= s[:name] || tag.span("Not entered", class: "muted") %></td><td><%= s[:certificate] %></td><td><%= l(s[:from], format: :short) %> – <%= l(s[:to], format: :short) %></td><td class="text-right"><%= hours(s[:hours]) %></td></tr><% end %></tbody>
   </table>
 </div>

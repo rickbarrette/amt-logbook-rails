@@ -57,17 +57,24 @@ Rails.application.configure do
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
   # config.action_mailer.raise_delivery_errors = false
 
-  # Set host to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: "example.com" }
+  # The public address (APP_URL, or https://APP_HOST): links in email use it,
+  # and requests for any other hostname are refused, so a forged Host header
+  # can't steer redirects or links. /up stays reachable for health checks.
+  public_url = URI(ENV["APP_URL"].presence || "#{config.force_ssl ? "https" : "http"}://#{ENV.fetch("APP_HOST", "localhost")}")
+  config.action_mailer.default_url_options = { host: public_url.host, protocol: public_url.scheme }
+  config.action_mailer.default_url_options[:port] = public_url.port unless [ 80, 443 ].include?(public_url.port)
+  config.hosts = [ public_url.host, *ENV.fetch("APP_EXTRA_HOSTS", "").split(",").map(&:strip).compact_blank ]
+  config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 
-  # Specify outgoing SMTP server. Remember to add smtp/* credentials via bin/rails credentials:edit.
-  # config.action_mailer.smtp_settings = {
-  #   user_name: Rails.application.credentials.dig(:smtp, :user_name),
-  #   password: Rails.application.credentials.dig(:smtp, :password),
-  #   address: "smtp.example.com",
-  #   port: 587,
-  #   authentication: :plain
-  # }
+  # Email (password resets, invitations) through SMTP_* when SMTP_ADDRESS is set.
+  if ENV["SMTP_ADDRESS"].present?
+    config.action_mailer.delivery_method = :smtp
+    config.action_mailer.smtp_settings = {
+      address: ENV["SMTP_ADDRESS"], port: ENV.fetch("SMTP_PORT", 587).to_i,
+      user_name: ENV["SMTP_USERNAME"].presence, password: ENV["SMTP_PASSWORD"].presence,
+      authentication: ENV["SMTP_USERNAME"].present? ? :plain : nil, enable_starttls_auto: true
+    }.compact
+  end
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).

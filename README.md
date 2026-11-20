@@ -76,6 +76,31 @@ authenticator code; restore steps are on that page). Keep `SECRET_KEY_BASE`
 safe: it seals signatures and encrypts authenticator secrets, and a restored
 backup needs the same one.
 
+## Running it on the internet
+
+The app's own sign-in is built to face the internet, with or without
+Authentik (or another forward-auth proxy) in front:
+
+- **Two-factor for everyone**: Admin → Settings → Two-factor sign-in →
+  Everyone. Admins and supervisors always need it.
+- **One hostname**: set `APP_HOST` (or `APP_URL`). Requests for any other
+  host are refused, so a forged `Host` header can't redirect anyone. Add
+  others with `APP_EXTRA_HOSTS` (comma-separated).
+- **Email** for password resets: `SMTP_ADDRESS`, `SMTP_PORT`,
+  `SMTP_USERNAME`, `SMTP_PASSWORD`, `MAIL_FROM`. Without it, an admin makes a
+  reset link from the user's page (Admin → Users) and sends it by hand.
+- **Behind Traefik without Authentik**: in `docker-compose.portainer.yml` set
+  `TRAEFIK_MIDDLEWARES=amt-logbook-limits@docker` (caps request size at the
+  proxy).
+
+What's already in place: HTTPS only (HSTS), secure cookies, a strict
+Content-Security-Policy, CSRF protection, rate limits on sign-in, password
+reset, two-factor and signing, account lockout after 10 failed tries
+(a password reset or an admin lifts it), sign-ins that end after 30 idle
+days or 90 days at most, request bodies capped at 128 MB, passwords and codes
+kept out of the logs, and invitation-only accounts. The first admin needs the
+one-time setup code printed in the server log.
+
 ## Development
 
 ```sh

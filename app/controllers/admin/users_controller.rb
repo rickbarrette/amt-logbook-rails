@@ -42,6 +42,14 @@ class Admin::UsersController < Admin::BaseController
     redirect_to edit_admin_user_path(@user), notice: "Two-factor reset for #{@user.name}."
   end
 
+  # Without email: a link (valid an hour) to give the person yourself.
+  def password_reset_link
+    @reset_url = edit_password_url(@user.password_reset_token)
+    @supervisors = User.active.where(supervisor: true).where.not(id: @user.id).ordered
+    flash.now[:notice] = "Reset link made. Send it to #{@user.name}; it works for an hour."
+    render :edit
+  end
+
   private
 
   def set_user = @user = User.find(params[:id])

@@ -18,6 +18,7 @@ Rails.application.routes.draw do
   end
   resource :profile, only: %i[show update] do
     patch :password
+    delete :other_sessions
   end
   resources :certificates, only: %i[create destroy]
 
@@ -61,6 +62,7 @@ Rails.application.routes.draw do
         post :disable
         post :enable
         post :reset_two_factor
+        post :password_reset_link
       end
       resources :supervisions, only: :create
     end

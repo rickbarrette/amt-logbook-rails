@@ -34,6 +34,14 @@
     <% end %>
     <div class="card space-y-2">
       <h2 class="h2">Account</h2>
+      <% if @reset_url %>
+        <div class="rounded-lg bg-sky-50 p-3 text-sm dark:bg-sky-950">
+          <p class="mb-1">Password reset link for <%= @user.name %> (works for an hour, once):</p>
+          <input type="text" readonly value="<%= @reset_url %>" class="input font-mono text-xs">
+        </div>
+      <% elsif !@user.disabled? && @user != current_user %>
+        <%= button_to "Make a password reset link", password_reset_link_admin_user_path(@user), class: "btn" %>
+      <% end %>
       <% if @user.otp_enabled? %><%= button_to "Reset two-factor (lost phone)", reset_two_factor_admin_user_path(@user), class: "btn", form: { data: { turbo_confirm: "They will set up their authenticator again at next sign-in." } } %><% end %>
       <% if @user.disabled? %>
         <%= button_to "Enable account", enable_admin_user_path(@user), class: "btn" %>

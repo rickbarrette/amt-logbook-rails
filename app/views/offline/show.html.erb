@@ -6,7 +6,7 @@
   <style>
     body { font-family: system-ui, sans-serif; display: grid; place-items: center; min-height: 100vh; margin: 0; background: #f8fafc; color: #0f172a; text-align: center; padding: 1rem; }
     @media (prefers-color-scheme: dark) { body { background: #0f172a; color: #e2e8f0; } }
-    button { margin-top: 1rem; padding: .6rem 1.2rem; border-radius: .5rem; border: 0; background: #0369a1; color: #fff; font-size: 1rem; }
+    a.button { display: inline-block; margin-top: 1rem; padding: .6rem 1.2rem; border-radius: .5rem; background: #0369a1; color: #fff; font-size: 1rem; text-decoration: none; }
   </style>
 </head>
 <body>
@@ -14,7 +14,7 @@
     <img src="/icon.svg" width="64" height="64" alt="">
     <h1>You're offline</h1>
     <p>Any timer you started is still running on the server.<br>Reconnect to see it or clock out.</p>
-    <button onclick="location.reload()">Try again</button>
+    <a class="button" href="/">Try again</a>
   </div>
 </body>
 </html>

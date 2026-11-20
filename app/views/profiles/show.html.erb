@@ -86,5 +86,14 @@
         <%= f.submit "Change password", class: "btn" %>
       <% end %>
     </div>
+
+    <div class="card space-y-2">
+      <h2 class="h2">Signed-in devices</h2>
+      <% others = current_user.sessions.where.not(id: Current.session.id).count %>
+      <p class="text-sm muted">You're signed in on <%= pluralize(others + 1, "device") %>. Sign-ins end after 30 days unused, or 90 days at most.</p>
+      <% if others.positive? %>
+        <%= button_to "Sign out #{pluralize(others, "other device")}", other_sessions_profile_path, method: :delete, class: "btn", form: { data: { turbo_confirm: "Sign out everywhere except here?" } } %>
+      <% end %>
+    </div>
   </div>
 </div>

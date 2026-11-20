@@ -14,6 +14,17 @@
       </div>
       <p class="hint mt-2">Ink only: technicians type their supervisor's name and certificate on each entry and record it; finished entries count toward the requirement, and the printed logbook gives the signature column to ink. Entries already signed electronically stay signed.</p>
     </fieldset>
+    <fieldset>
+      <legend class="label">Two-factor sign-in</legend>
+      <div class="space-y-2">
+        <% Setting::TWO_FACTOR_POLICIES.each do |key, label| %>
+          <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-300 p-3 text-sm has-[:checked]:border-sky-600 has-[:checked]:bg-sky-50 dark:border-slate-600 dark:has-[:checked]:bg-sky-950">
+            <%= radio_button_tag :require_two_factor, key, Setting.get("require_two_factor") == key, class: "mt-1 accent-sky-700" %> <span><%= label %></span>
+          </label>
+        <% end %>
+      </div>
+      <p class="hint mt-2">Anyone without an authenticator is asked to set one up the next time they open the app. People who sign in through single sign-on rely on the provider's own two-factor instead.</p>
+    </fieldset>
     <%= f.submit "Save", class: "btn-primary" %>
   <% end %>
 </div>

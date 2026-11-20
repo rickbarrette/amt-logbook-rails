@@ -107,7 +107,7 @@ class ExperienceReport
   # Supervisors of the counted entries, with certificate and period (for the
   # printed book's statement pages).
   def signers
-    signed.group_by { [ _1.supervisor_display_name || "Supervisor", _1.supervisor_display_certificate.to_s ] }.map do |(name, cert), list|
+    signed.group_by { [ _1.supervisor_display_name.presence, _1.supervisor_display_certificate.to_s ] }.map do |(name, cert), list|
       { name:, certificate: cert.presence || "__________", from: list.first.performed_on, to: list.last.performed_on,
         hours: hours(list), by_category: hours_by_category(list) }
     end

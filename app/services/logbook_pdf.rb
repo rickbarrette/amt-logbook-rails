@@ -99,7 +99,7 @@ class LogbookPdf
     rows = [ [ "Rating sought", @tech.rating_goal_label ],
              [ "Requirement", "#{r.required_months} months (#{"14 CFR 65.77(b)(#{@tech.rating_goal == "both" ? 2 : 1})"})" ],
              [ "Airframe hours", cats["airframe"].to_s ], [ "Powerplant hours", cats["powerplant"].to_s ],
-             [ "General hours", cats["general"].to_s ], [ "Total signed hours", r.total_hours.to_s ],
+             [ "General hours", cats["general"].to_s ], [ "Total #{@ink ? "recorded" : "signed"} hours", r.total_hours.to_s ],
              [ "Qualifying hours", "#{r.qualifying_hours} of #{r.required_hours} (#{r.percent_complete}%)" ],
              [ "Equivalent months", "#{r.equivalent_months} of #{r.required_months}" ],
              [ "Calendar months covered", r.calendar_months.to_s ], [ "Months with experience", r.active_months.to_s ] ]
@@ -111,7 +111,7 @@ class LogbookPdf
   # The ACS subject areas side by side (General | Airframe | Powerplant), with hours.
   def acs_coverage
     pdf.move_down 16
-    pdf.text "ACS subject areas (FAA-S-ACS-1): hours of signed experience", size: 10, style: :bold
+    pdf.text "ACS subject areas (FAA-S-ACS-1): hours of #{@ink ? "recorded" : "signed"} experience", size: 10, style: :bold
     pdf.move_down 4
     hours = @report.subject_area_hours
     sections = Faa.acs_sections.values
@@ -134,13 +134,14 @@ class LogbookPdf
       pdf.start_new_page
       heading("Supervisor's statement of experience", "For the FAA inspector, with FAA Form 8610-2.")
       c = s[:by_category]
-      pdf.text txt("I, #{s[:name]}, holder of certificate #{s[:certificate]}, certify that #{@tech.name} performed practical " \
+      name = s[:name] || "______________________"
+      pdf.text txt("I, #{name}, holder of certificate #{s[:certificate]}, certify that #{@tech.name} performed practical " \
                    "experience in the construction, maintenance, or alteration of aircraft under my supervision from " \
                    "#{s[:from].strftime("%B %-d, %Y")} to #{s[:to].strftime("%B %-d, %Y")}, totaling #{s[:hours]} hours " \
                    "(airframe #{c["airframe"]}, powerplant #{c["powerplant"]}, general #{c["general"]}), as recorded in the " \
                    "entries of this logbook that bear my signature."), size: 11, leading: 3
       pdf.move_down 20
-      [ [ "Supervisor signature", "Date" ], [ "Printed name: #{s[:name]}", "Certificate: #{s[:certificate]}" ],
+      [ [ "Supervisor signature", "Date" ], [ "Printed name#{": #{s[:name]}" if s[:name]}", "Certificate#{": #{s[:certificate]}" unless s[:certificate].start_with?("_")}" ],
         [ "Employer / repair station", "Telephone or email" ] ].each do |left, right|
         y = pdf.cursor
         signature_line(left, width: 300)
@@ -206,6 +207,9 @@ class LogbookPdf
     end
   end
 
+  # The page certification and the signature/date lines under each table.
+  SIGN_OFF_HEIGHT = 64
+
   def entry_pages
     return if @entries.empty?
     forward = [ 0, 0, 0 ]
@@ -213,7 +217,7 @@ class LogbookPdf
     until remaining.empty?
       pdf.start_new_page
       heading("Logbook entries - #{@tech.name}")
-      available = pdf.cursor - 40 # room for the page certification line
+      available = pdf.cursor - SIGN_OFF_HEIGHT # room for the certification and signature lines
       take = 1
       # As many entries as fit with the totals rows underneath.
       while take < remaining.size

@@ -1,5 +1,6 @@
 class User < ApplicationRecord
-  has_secure_password
+  # Reset links last an hour: long enough for an admin to send one by hand.
+  has_secure_password reset_token: { expires_in: 1.hour }
   has_many :sessions, dependent: :destroy
   has_many :certificates, -> { order(:created_at) }, class_name: "UserCertificate", dependent: :destroy
   has_many :work_entries, dependent: :destroy
@@ -36,6 +37,9 @@ class User < ApplicationRecord
   scope :ordered, -> { order(:name) }
 
   def disabled? = disabled_at.present?
+
+  # Email delivery is set up (SMTP_ADDRESS); without it, admins hand out links.
+  def self.mail_configured? = ENV["SMTP_ADDRESS"].present? || !Rails.env.production?
   def to_s = name
 
   # Certificates usable for signing (unexpired).
@@ -76,7 +80,7 @@ class User < ApplicationRecord
   # Admins manage accounts and supervisors sign records (electronic
   # signatures): both need a second factor. Sessions started through single
   # sign-on are exempt (the provider handles MFA); see ApplicationController.
-  def otp_required? = admin? || (supervisor? && Setting.electronic_signatures?)
+  def otp_required? = admin? || (supervisor? && Setting.electronic_signatures?) || Setting.two_factor_for_everyone?
   def sso_linked? = sso_uid.present?
 
   def self.new_otp_secret = ROTP::Base32.random

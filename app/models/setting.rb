@@ -4,7 +4,11 @@ class Setting < ApplicationRecord
     "electronic" => "Electronic and ink: supervisors sign in the app; the printout also has ink-signature lines",
     "ink" => "Ink only: supervisors sign the printed logbook by hand; no supervisor accounts needed"
   }.freeze
-  DEFAULTS = { "signature_mode" => "electronic" }.freeze
+  DEFAULTS = { "signature_mode" => "electronic", "require_two_factor" => "staff" }.freeze
+  TWO_FACTOR_POLICIES = {
+    "staff" => "Admins and supervisors (who sign electronically) must use an authenticator app; technicians may",
+    "everyone" => "Everyone must use an authenticator app (recommended when the app is reachable from the internet)"
+  }.freeze
 
   validates :key, presence: true, uniqueness: true
 
@@ -17,4 +21,5 @@ class Setting < ApplicationRecord
   def self.signature_mode = SIGNATURE_MODES.key?(get("signature_mode")) ? get("signature_mode") : "electronic"
   def self.ink_signatures? = signature_mode == "ink"
   def self.electronic_signatures? = !ink_signatures?
+  def self.two_factor_for_everyone? = get("require_two_factor") == "everyone"
 end

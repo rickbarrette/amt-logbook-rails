@@ -51,6 +51,11 @@ class EntrySignature < ApplicationRecord
   def auth_method_label = AUTH_METHODS[auth_method]
   def certificate_label = "#{Faa.certificate_short(certificate_kind)} #{certificate_number}"
   def seal_valid? = seal.present? && ActiveSupport::SecurityUtils.secure_compare(seal, compute_seal)
-  def content_matches? = content_digest == work_entry.content_digest
+  def content_matches?
+    now = work_entry.content
+    snapshot = JSON.parse(content_snapshot) rescue {}
+    now["aircraft_description"] = snapshot["aircraft_description"] if snapshot.key?("aircraft_description")
+    content_digest == Digest::SHA256.hexdigest(now.to_json)
+  end
   def intact? = seal_valid? && content_matches?
 end

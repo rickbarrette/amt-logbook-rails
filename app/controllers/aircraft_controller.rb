@@ -1,11 +1,13 @@
 class AircraftController < ApplicationController
+  before_action :set_aircraft, only: %i[show update refresh]
+  before_action :require_aircraft_editor, only: %i[update refresh]
+
   def index
     ids = WorkEntry.where(user: [ current_user, *visible_technicians ]).distinct.pluck(:aircraft_id)
     @aircraft = Aircraft.where(id: ids).order(:n_number)
   end
 
   def show
-    @aircraft = Aircraft.find(params[:id])
     @entries = current_user.work_entries.where(aircraft: @aircraft).recent.includes(:timer).limit(100)
   end
 
@@ -25,7 +27,6 @@ class AircraftController < ApplicationController
   end
 
   def update
-    @aircraft = Aircraft.find(params[:id])
     if @aircraft.update(params.expect(aircraft: %i[manufacturer model year_manufactured serial_number aircraft_type engine_manufacturer engine_model]).merge(source: "manual"))
       redirect_to @aircraft, notice: "Aircraft updated."
     else
@@ -35,7 +36,6 @@ class AircraftController < ApplicationController
 
   # Fill (or refill) this aircraft's details from the imported FAA registry.
   def refresh
-    @aircraft = Aircraft.find(params[:id])
     if @aircraft.refresh_from_registry!
       redirect_to @aircraft, notice: "Updated from the FAA registry."
     else
@@ -44,6 +44,16 @@ class AircraftController < ApplicationController
   end
 
   private
+
+  def set_aircraft = @aircraft = Aircraft.find(params[:id])
+
+  # Aircraft are shared: admins, and technicians who logged work on it.
+  def aircraft_editor? = current_user.admin? || current_user.work_entries.exists?(aircraft_id: @aircraft.id)
+  helper_method :aircraft_editor?
+
+  def require_aircraft_editor
+    redirect_to aircraft_path(@aircraft), alert: "Only people who've logged work on #{@aircraft.n_number} can change it." unless aircraft_editor?
+  end
 
   def visible_technicians = current_user.admin? ? User.all : current_user.technicians
 end

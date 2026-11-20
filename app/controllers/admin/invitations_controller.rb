@@ -25,6 +25,6 @@ class Admin::InvitationsController < Admin::BaseController
 
   private
 
-  def mail_configured? = ENV["SMTP_ADDRESS"].present? || !Rails.env.production?
+  def mail_configured? = User.mail_configured?
   helper_method :mail_configured?
 end
