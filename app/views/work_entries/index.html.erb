@@ -1,10 +1,19 @@
 <% content_for :title, "Entries" %>
 <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
   <h1 class="h1"><%= @technician == current_user ? "Logbook entries" : "#{@technician.name}'s entries" %></h1>
-  <% if @technician == current_user %><%= link_to "New entry", new_work_entry_path, class: "btn-primary" %><% end %>
+  <% if @technician == current_user %>
+    <div class="flex gap-2">
+      <% if current_user.technician? %><%= link_to "Import", imports_path, class: "btn" %><% end %>
+      <%= link_to "New entry", new_work_entry_path, class: "btn-primary" %>
+    </div>
+  <% end %>
 </div>
+<% if params[:import_id].present? %>
+  <p class="mb-3 text-sm">Showing entries from one import. <%= link_to "Back to the import", import_path(params[:import_id]), class: "link" %> · <%= link_to "All entries", work_entries_path, class: "link" %></p>
+<% end %>
 <%= form_with url: work_entries_path, method: :get, class: "mb-4 flex flex-wrap items-end gap-2" do |f| %>
   <%= hidden_field_tag :technician_id, params[:technician_id] if params[:technician_id] %>
+  <%= hidden_field_tag :import_id, params[:import_id] if params[:import_id].present? %>
   <%= f.select :status, ApplicationHelper::STATUS_LABELS.invert, { include_blank: "Any status", selected: params[:status] }, class: "input w-auto" %>
   <%= f.select :category, category_options, { include_blank: "Any category", selected: params[:category] }, class: "input w-auto" %>
   <%= f.text_field :n_number, value: params[:n_number], placeholder: "N-number", class: "input w-32 uppercase" %>

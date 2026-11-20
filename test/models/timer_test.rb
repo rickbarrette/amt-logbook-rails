@@ -30,6 +30,48 @@ class TimerTest < ActiveSupport::TestCase
     assert_equal second, @user.running_timer
   end
 
+  test "clocking in opens a draft entry that can be filled in while the clock runs" do
+    travel_to Time.zone.local(2026, 11, 1, 8, 0, 0)
+    timer = Timer.start!(user: @user, aircraft: aircraft(:n12345), description: "Brakes")
+    entry = timer.work_entry
+    assert entry.draft?
+    assert entry.clocking?
+    assert_equal [ "Brakes", Date.new(2026, 11, 1), aircraft(:n12345) ], [ entry.description, entry.performed_on, entry.aircraft ]
+
+    entry.update!(description: "Replaced left brake linings", ata_chapter: "32", category: "airframe")
+    travel 97.minutes
+    assert_equal entry, timer.stop!
+    entry.reload
+    assert_not entry.clocking?
+    assert_equal [ 96, "Replaced left brake linings", "32" ], [ entry.minutes, entry.description, entry.ata_chapter ]
+    assert_equal Time.zone.local(2026, 11, 1, 9, 37, 0), entry.ended_at
+  end
+
+  test "an entry can't be sent or recorded until the clock stops" do
+    entry = Timer.start!(user: @user).work_entry
+    assert_raises(ArgumentError) { entry.submit!(to: users(:sup)) }
+    assert_raises(ArgumentError) { entry.record! }
+    entry.timer.stop!
+    entry.reload.submit!(to: users(:sup))
+    assert entry.submitted?
+  end
+
+  test "discarding a timer removes its untouched draft" do
+    timer = Timer.start!(user: @user)
+    assert_difference -> { WorkEntry.count }, -1 do
+      timer.discard!
+    end
+  end
+
+  test "a timer started before entries opened at clock-in still makes one when stopped" do
+    travel_to Time.zone.local(2026, 11, 1, 8, 0, 0)
+    timer = @user.timers.create!(started_at: Time.current, running_since: Time.current, description: "Old style")
+    travel 1.hour
+    entry = timer.stop!
+    assert_equal [ 60, "Old style" ], [ entry.minutes, entry.description ]
+    assert_equal entry, timer.reload.work_entry
+  end
+
   test "stop makes a draft entry rounded to tenths of an hour" do
     travel_to Time.zone.local(2026, 11, 1, 8, 0, 0)
     timer = Timer.start!(user: @user, aircraft: aircraft(:n12345), category: "airframe", description: "Brake job")

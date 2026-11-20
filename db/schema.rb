@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_20_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_21_010000) do
   create_table "aircraft", force: :cascade do |t|
     t.string "n_number", null: false
     t.string "serial_number"
@@ -60,6 +60,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_20_120000) do
     t.index ["iata"], name: "index_airports_on_iata"
     t.index ["ident"], name: "index_airports_on_ident", unique: true
     t.index ["local_code"], name: "index_airports_on_local_code"
+  end
+
+  create_table "entry_imports", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "kind", null: false
+    t.string "filename"
+    t.text "data", null: false
+    t.json "mapping", default: {}, null: false
+    t.json "options", default: {}, null: false
+    t.string "status", default: "pending", null: false
+    t.integer "created_count", default: 0, null: false
+    t.integer "skipped_count", default: 0, null: false
+    t.json "problems", default: [], null: false
+    t.datetime "imported_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_entry_imports_on_user_id"
   end
 
   create_table "entry_signatures", force: :cascade do |t|
@@ -229,13 +246,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_20_120000) do
     t.datetime "updated_at", null: false
     t.string "supervisor_name"
     t.string "supervisor_certificate"
+    t.integer "entry_import_id"
+    t.json "import_details"
     t.index ["aircraft_id"], name: "index_work_entries_on_aircraft_id"
+    t.index ["entry_import_id"], name: "index_work_entries_on_entry_import_id"
     t.index ["supervisor_id", "status"], name: "index_work_entries_on_supervisor_id_and_status"
     t.index ["supervisor_id"], name: "index_work_entries_on_supervisor_id"
     t.index ["user_id", "performed_on"], name: "index_work_entries_on_user_id_and_performed_on"
     t.index ["user_id"], name: "index_work_entries_on_user_id"
   end
 
+  add_foreign_key "entry_imports", "users"
   add_foreign_key "entry_signatures", "users"
   add_foreign_key "entry_signatures", "work_entries"
   add_foreign_key "invitations", "users"
@@ -249,6 +270,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_20_120000) do
   add_foreign_key "timers", "work_entries"
   add_foreign_key "user_certificates", "users"
   add_foreign_key "work_entries", "aircraft"
+  add_foreign_key "work_entries", "entry_imports", on_delete: :nullify
   add_foreign_key "work_entries", "users"
   add_foreign_key "work_entries", "users", column: "supervisor_id"
 end

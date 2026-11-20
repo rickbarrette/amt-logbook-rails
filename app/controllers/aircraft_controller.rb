@@ -6,7 +6,7 @@ class AircraftController < ApplicationController
 
   def show
     @aircraft = Aircraft.find(params[:id])
-    @entries = current_user.work_entries.where(aircraft: @aircraft).recent.limit(100)
+    @entries = current_user.work_entries.where(aircraft: @aircraft).recent.includes(:timer).limit(100)
   end
 
   # GET /aircraft/lookup?n_number=N12345 — details from the imported FAA

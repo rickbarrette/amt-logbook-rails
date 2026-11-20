@@ -83,6 +83,37 @@ class EntriesTest < ActionDispatch::IntegrationTest
     assert_equal "Compression test", entry.description
   end
 
+  test "timer: fill in the entry while the clock runs, then clock out and send it" do
+    travel_to Time.zone.local(2026, 11, 2, 7, 0, 0)
+    post timers_path, params: { n_number: "N12345", description: "Brakes", fill_in: "1" }
+    entry = users(:tech).running_timer.work_entry
+    assert_redirected_to edit_work_entry_path(entry)
+    follow_redirect!
+    assert_select "[data-controller=clock]"
+    assert_select "input[name='work_entry[hours]']", 0
+    assert_select "input[name=submit_for_signature]", 0
+
+    travel 1.hour
+    patch work_entry_path(entry), params: { work_entry: { description: "Replaced left brake linings", hours: "9", category: "airframe",
+                                                          ata_chapter: "32", supervisor_id: users(:sup).id }, submit_for_signature: "1" }
+    assert_redirected_to work_entry_path(entry)
+    entry.reload
+    assert entry.draft?, "not sent while the clock runs"
+    assert_equal "Replaced left brake linings", entry.description
+    assert_not_equal 540, entry.minutes, "the timer owns the hours"
+    get work_entries_path
+    assert_select "td", text: /running/
+
+    post submit_work_entry_path(entry)
+    assert_match(/Clock out first/, flash[:alert])
+
+    travel 30.minutes
+    post stop_timer_path(entry.timer)
+    assert_equal 90, entry.reload.minutes
+    post submit_work_entry_path(entry)
+    assert entry.reload.submitted?
+  end
+
   test "printable logbook PDF and CSV" do
     signed_entry
     get export_logbook_path(format: :pdf, include_unsigned: "1")

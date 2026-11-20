@@ -27,6 +27,12 @@ Rails.application.routes.draw do
     get :aircraft
   end
   resource :markdown_preview, only: :create
+  resources :imports, only: %i[index create show update destroy] do
+    member do
+      post :undo
+      post :finish
+    end
+  end
   resources :work_entries do
     post :submit, on: :member
   end
@@ -65,6 +71,7 @@ Rails.application.routes.draw do
     end
     resource :settings, only: %i[show update]
     resource :airports, only: %i[show create]
+    resource :backup, only: %i[show create]
   end
 
   get "up" => "rails/health#show", as: :rails_health_check

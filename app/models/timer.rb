@@ -12,12 +12,23 @@ class Timer < ApplicationRecord
   validates :category, inclusion: { in: ->(_) { Faa.categories.keys } }, allow_blank: true
   validates :description, length: { maximum: 500 }
 
+  # Clocks in and opens the draft entry for this work, so it can be filled in
+  # while the clock runs; clocking out sets its hours.
   def self.start!(user:, **attrs)
     transaction do
       user.timers.running.each(&:pause!) # one running clock at a time
       now = Time.current
-      user.timers.create!(attrs.merge(started_at: now, running_since: now))
+      timer = user.timers.create!(attrs.merge(started_at: now, running_since: now))
+      timer.update!(work_entry: user.work_entries.create!(timer.entry_attributes(now)))
+      timer
     end
+  end
+
+  def entry_attributes(now = Time.current)
+    { aircraft:, performed_on: started_at.in_time_zone(user.time_zone.presence || Time.zone).to_date, started_at:,
+      minutes: rounded_minutes(elapsed_seconds(now)), category: category.presence || "general",
+      description: description.presence || "(describe the work)",
+      supervisor: user.supervisors.one? ? user.supervisors.first : nil }
   end
 
   def running? = running_since.present? && stopped_at.nil?
@@ -41,21 +52,35 @@ class Timer < ApplicationRecord
     end
   end
 
-  # Stops the clock and turns it into a draft entry (rounded to 0.1 hour, min 6 min).
+  # Stops the clock and sets the entry's hours (rounded to 0.1 hour, at
+  # least 6 minutes). What was typed into the entry meanwhile is kept.
   def stop!
     transaction do
       now = Time.current
       seconds = elapsed_seconds(now)
       update!(accumulated_seconds: seconds, running_since: nil, stopped_at: now)
-      minutes = [ ((seconds / 360.0).round * 6), 6 ].max
-      entry = user.work_entries.create!(
-        aircraft:, performed_on: started_at.in_time_zone(user.time_zone || Time.zone).to_date,
-        started_at:, ended_at: now, minutes: [ minutes, WorkEntry::MAX_MINUTES ].min,
-        category: category.presence || "general", description: description.presence || "(describe the work)",
-        supervisor: user.supervisors.one? ? user.supervisors.first : nil
-      )
-      update!(work_entry: entry)
+      minutes = rounded_minutes(seconds)
+      entry = work_entry&.editable? ? work_entry : nil
+      if entry
+        entry.update!(minutes:, started_at:, ended_at: now)
+      else # started before entries opened at clock-in, or the entry was deleted
+        entry = user.work_entries.create!(entry_attributes(now).merge(minutes:, ended_at: now))
+        update!(work_entry: entry)
+      end
       entry
     end
   end
+
+  # Throws away the clock and its entry if that's still an untouched draft.
+  def discard!
+    transaction do
+      entry = work_entry
+      destroy!
+      entry.destroy! if entry&.draft?
+    end
+  end
+
+  private
+
+  def rounded_minutes(seconds) = [ [ ((seconds / 360.0).round * 6), 6 ].max, WorkEntry::MAX_MINUTES ].min
 end

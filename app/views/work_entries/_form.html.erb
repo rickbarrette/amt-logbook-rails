@@ -8,7 +8,11 @@
 
   <div class="grid gap-4 sm:grid-cols-3">
     <div><%= f.label :performed_on, "Date", class: "label" %><%= f.date_field :performed_on, required: true, max: Date.current, class: "input" %></div>
-    <div><%= f.label :hours, class: "label" %><%= f.number_field :hours, value: (entry.minutes ? entry.hours : nil), step: 0.1, min: 0.1, max: 24, required: true, inputmode: "decimal", class: "input" %></div>
+    <% if entry.clocking? %>
+      <div><span class="label">Hours</span><p class="input bg-slate-50 text-slate-500 dark:bg-slate-800">Set at clock-out</p></div>
+    <% else %>
+      <div><%= f.label :hours, class: "label" %><%= f.number_field :hours, value: (entry.minutes ? entry.hours : nil), step: 0.1, min: 0.1, max: 24, required: true, inputmode: "decimal", class: "input" %></div>
+    <% end %>
     <div class="relative" data-controller="aircraft-lookup suggest" data-aircraft-lookup-url-value="<%= lookup_aircraft_index_path %>" data-suggest-url-value="<%= suggestions_aircraft_path %>">
       <%= f.label :n_number, "Aircraft N-number", class: "label" %>
       <%= f.text_field :n_number, placeholder: "N12345 (optional)", autocapitalize: "characters", class: "input uppercase",
@@ -110,10 +114,14 @@
                elsif current_user.supervisors.any? then "Save and send for signature"
                end %>
   <div class="flex flex-wrap gap-2">
+    <% if entry.clocking? %>
+      <%= f.submit "Save", class: "btn-primary" %>
+    <% else %>
     <%= f.submit "Save draft", class: "btn" %>
     <% if primary %><%= f.submit primary, name: "submit_for_signature", class: "btn-primary" %><% end %>
     <% if entry.new_record? %>
       <%= f.button "#{primary || "Save draft"} and add another", type: "submit", name: "add_another", value: "1", class: "btn" %>
+    <% end %>
     <% end %>
   </div>
 <% end %>

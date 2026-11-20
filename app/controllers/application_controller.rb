@@ -37,4 +37,19 @@ class ApplicationController < ActionController::Base
     scope.find(id)
   end
   helper_method :visible_technician
+
+  # Signed in at the SSO provider within the last few minutes, as this user.
+  def sso_confirmed?
+    Sso.enabled? && current_user.sso_linked? &&
+      session[:sso_signed_in_at].to_i > Sso::REAUTH_FOR.ago.to_i
+  end
+
+  # Before something sensitive: a fresh SSO sign-in, or password plus
+  # authenticator code from the form. Returns how, or nil.
+  def confirm_identity
+    return "sso" if sso_confirmed?
+    ok = current_user.authenticate(params[:password].to_s) && current_user.verify_second_factor(params[:code])
+    current_user.register_failed_sign_in! unless ok
+    ok ? "password_totp" : nil
+  end
 end

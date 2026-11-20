@@ -1,6 +1,6 @@
 <% content_for :title, "Timer" %>
 <h1 class="h1 mb-1">Timer</h1>
-<p class="mb-4 text-sm muted">The clock runs on the server: close the app or switch to another device and it keeps counting. Clocking out makes a draft entry for you to finish and send to be signed.</p>
+<p class="mb-4 text-sm muted">The clock runs on the server: close the app or switch to another device and it keeps counting. Clocking in opens a draft entry: fill it in any time while you work, and clocking out sets its hours. Then send it to be signed.</p>
 <div class="card mb-6"><%= render "clock_in" %></div>
 <div class="space-y-3 mb-8">
   <%= render(partial: "timer", collection: @timers) || tag.p("Not clocked in.", class: "muted") %>

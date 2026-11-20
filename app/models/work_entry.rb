@@ -11,6 +11,7 @@ class WorkEntry < ApplicationRecord
   belongs_to :user
   belongs_to :aircraft, optional: true
   belongs_to :supervisor, class_name: "User", optional: true
+  belongs_to :entry_import, optional: true
   has_one :signature, class_name: "EntrySignature", dependent: :destroy
   has_one :timer, dependent: :nullify
 
@@ -55,6 +56,7 @@ class WorkEntry < ApplicationRecord
   end
 
   def record!
+    raise ArgumentError, "clock out first" if clocking?
     update!(status: "recorded", submitted_at: Time.current, returned_reason: nil)
   end
 
@@ -63,12 +65,16 @@ class WorkEntry < ApplicationRecord
     self.minutes = (value.to_f * 60).round if value.present?
   end
 
+  def imported? = import_details.present?
+  # Its timer is still running or paused: hours aren't known yet.
+  def clocking? = timer.present? && !timer.stopped?
   def category_label = Faa.categories[category]
   def ata_label = Faa.ata_label(ata_chapter)
   def subject_area_labels = subject_areas.map { Faa.subject_area_label(_1) }
 
   def submit!(to: supervisor)
     raise ArgumentError, "choose a supervisor" unless to
+    raise ArgumentError, "clock out first" if clocking?
     update!(supervisor: to, status: "submitted", submitted_at: Time.current, returned_reason: nil)
   end
 

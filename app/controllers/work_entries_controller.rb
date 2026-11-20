@@ -4,8 +4,9 @@ class WorkEntriesController < ApplicationController
 
   def index
     @technician = visible_technician(params[:technician_id])
-    scope = @technician.work_entries.includes(:aircraft, :supervisor, :signature).recent
+    scope = @technician.work_entries.includes(:aircraft, :supervisor, :signature, :timer).recent
     scope = scope.where(status: params[:status]) if WorkEntry::STATUSES.include?(params[:status])
+    scope = scope.where(entry_import_id: params[:import_id]) if params[:import_id].present?
     scope = scope.where(category: params[:category]) if Faa.categories.key?(params[:category])
     scope = scope.joins(:aircraft).where(aircraft: { n_number: Aircraft.normalize_n_number(params[:n_number]) }) if params[:n_number].present?
     @page = [ params[:page].to_i, 1 ].max
@@ -48,7 +49,10 @@ class WorkEntriesController < ApplicationController
   end
 
   def update
-    @entry.assign_attributes(entry_params)
+    # While the clock runs, it owns the hours.
+    @entry.assign_attributes(@entry.clocking? ? entry_params.except(:hours) : entry_params)
+    # Saved by the technician: the imported values have been checked.
+    @entry.import_details = @entry.import_details.except("suggested") if @entry.imported?
     assign_aircraft
     if @entry.errors.none? && @entry.save
       submit_if_asked
@@ -59,6 +63,7 @@ class WorkEntriesController < ApplicationController
   end
 
   def submit
+    return redirect_to(@entry, alert: "Clock out first: the timer sets this entry's hours.") if @entry.clocking?
     if Setting.ink_signatures?
       @entry.record!
       redirect_to @entry, notice: "Entry recorded. Your supervisor signs it on the printed logbook."
@@ -109,6 +114,7 @@ class WorkEntriesController < ApplicationController
   # The primary button, or "…and add another" (which does the same).
   def submit_if_asked
     return if params[:submit_for_signature].blank? && params[:add_another].blank?
+    return if @entry.clocking? # hours aren't known until clock-out
     if Setting.ink_signatures?
       @entry.record!
     elsif @entry.supervisor
@@ -119,6 +125,7 @@ class WorkEntriesController < ApplicationController
   def saved_notice
     if @entry.submitted? then "Entry sent to #{@entry.supervisor.name} to sign."
     elsif @entry.recorded? then "Entry recorded. Your supervisor signs it on the printed logbook."
+    elsif @entry.clocking? then "Entry saved. The clock is still running; clocking out sets the hours."
     else "Entry saved as a draft."
     end
   end

@@ -32,7 +32,7 @@
               <%= nav_link "Entries", work_entries_path %>
               <%= nav_link "Timer", timers_path %>
               <%= nav_link "Reports", report_path %>
-              <%= nav_link "Print", logbook_path %>
+              <%= nav_link "Export", logbook_path %>
             <% end %>
             <% if current_user.supervisor? && Setting.electronic_signatures? %>
               <%= nav_link "Sign", signatures_path, badge: current_user.entries_to_sign.awaiting_signature.count %>
@@ -46,8 +46,9 @@
           <%= button_to "Sign out", session_path, method: :delete, class: "btn btn-sm", form: { data: { turbo: false } } %>
         </div>
         <% if current_user.technician? && (t = current_user.running_timer) %>
-          <%= link_to timers_path, class: "block bg-emerald-600 px-4 py-1.5 text-center text-sm font-medium text-white" do %>
-            Clocked in<%= " on #{t.aircraft.n_number}" if t.aircraft %> ·
+          <% clock_entry = t.work_entry if t.work_entry&.editable? %>
+          <%= link_to clock_entry ? edit_work_entry_path(clock_entry) : timers_path, class: "block bg-emerald-600 px-4 py-1.5 text-center text-sm font-medium text-white", title: clock_entry ? "Fill in the entry" : nil do %>
+            Clocked in<%= " on #{(clock_entry || t).aircraft.n_number}" if (clock_entry || t).aircraft %> ·
             <span data-controller="clock" data-clock-start-value="<%= t.running_since.to_i * 1000 %>" data-clock-accumulated-value="<%= t.accumulated_seconds %>"><%= duration(t.elapsed_seconds) %></span>
           <% end %>
         <% end %>
@@ -71,7 +72,7 @@
         <% tabs = [["Home", root_path]]
            tabs += [["Entries", work_entries_path], ["Timer", timers_path], ["Reports", report_path]] if current_user.technician?
            tabs << ["Sign", signatures_path] if current_user.supervisor? && Setting.electronic_signatures?
-           tabs << (current_user.technician? ? ["Print", logbook_path] : ["Aircraft", aircraft_index_path]) %>
+           tabs << (current_user.technician? ? ["Export", logbook_path] : ["Aircraft", aircraft_index_path]) %>
         <% tabs.each do |label, path| %>
           <% active = path == root_path ? current_page?(root_path) : request.path.start_with?(path) %>
           <%= link_to label, path, class: "flex-1 py-3 text-center text-xs font-medium #{active ? "text-sky-700 dark:text-sky-300" : "text-slate-500 dark:text-slate-400"}" %>

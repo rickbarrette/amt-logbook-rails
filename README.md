@@ -17,8 +17,14 @@ Rails app you can install on your phone (PWA).
 - **Printable logbook (PDF)**: cover with the technician's statement, a summary
   against 65.77, a statement page for each supervisor to sign (with a specimen
   signature), then every entry with page totals, totals brought forward, and a
-  column for the supervisor's ink signature next to the electronic one. CSV
-  export too.
+  column for the supervisor's ink signature next to the electronic one.
+- **Export and import**: CSV for spreadsheets, filtered by dates, category and
+  status; a full export (JSON) of a technician's logbook, including
+  e-signature records with their seals. Import a spreadsheet CSV (match its
+  columns, preview, then import; a missing category or ATA chapter is
+  suggested) or a full export. Imported entries arrive as drafts to check,
+  then record or send for signature in one go; re-importing a file skips
+  what's already there, and an import can be undone.
 - **Reports**: progress toward 18 months (one rating) or 30 months (both,
   concurrently); equivalent months; calendar months; pace and projected date;
   hours per month; by category, ATA chapter, aircraft and type; ACS
@@ -64,9 +70,11 @@ For production behind Traefik (and Authentik), e.g. as a Portainer stack, use
 `docker-compose.portainer.yml` with the published image
 `barrettefab/amt-logbook-rails`; see [docs/authentik.md](docs/authentik.md).
 
-Back up the `amt_storage` volume (the SQLite databases). Keep
-`SECRET_KEY_BASE` safe: it seals signatures and encrypts authenticator
-secrets.
+Back up the `amt_storage` volume (the SQLite databases), or download a copy of
+the main database from **Admin → Backup** (it asks for your password and
+authenticator code; restore steps are on that page). Keep `SECRET_KEY_BASE`
+safe: it seals signatures and encrypts authenticator secrets, and a restored
+backup needs the same one.
 
 ## Development
 

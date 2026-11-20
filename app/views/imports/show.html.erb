@@ -1,0 +1,102 @@
+<% content_for :title, "Import" %>
+<% i = @import %>
+<div class="mb-4 flex flex-wrap items-center gap-3">
+  <h1 class="h1"><%= i.filename.presence || "Import" %></h1>
+  <span class="badge bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-200"><%= i.kind == "csv" ? "Spreadsheet" : "AMT Logbook export" %></span>
+  <%= link_to "All imports", imports_path, class: "link ml-auto text-sm" %>
+</div>
+
+<% if @error %>
+  <div class="card text-sm text-red-700 dark:text-red-300"><%= @error %></div>
+<% elsif i.done? %>
+  <div class="grid gap-6 lg:grid-cols-3">
+    <div class="card lg:col-span-2 space-y-3">
+      <p><strong><%= i.created_count %></strong> <%= "entry".pluralize(i.created_count) %> imported as drafts<%= ", #{i.skipped_count} skipped" if i.skipped_count.positive? %>, <%= l(i.imported_at, format: :short) %>.</p>
+      <% drafts = i.drafts.count %>
+      <% if drafts.positive? %>
+        <p class="text-sm"><%= drafts == 1 ? "1 is still a draft" : "#{drafts} are still drafts" %>. <%= link_to "Review them", work_entries_path(import_id: i.id), class: "link" %>: open any entry to fix it.</p>
+        <% if Setting.ink_signatures? %>
+          <%= button_to "Record all #{drafts} drafts", finish_import_path(i), class: "btn-primary", form: { data: { turbo_confirm: "Record all #{drafts} imported drafts? They'll count toward your totals and print for ink signatures." } } %>
+        <% elsif current_user.supervisors.any? %>
+          <%= form_with url: finish_import_path(i), class: "flex flex-wrap items-end gap-2", data: { turbo_confirm: "Send all #{drafts} imported drafts to be signed?" } do |f| %>
+            <div><%= label_tag :supervisor_id, "Send all to", class: "label" %><%= select_tag :supervisor_id, options_for_select(current_user.supervisors.ordered.map { [_1.name, _1.id] }), class: "input" %></div>
+            <%= f.submit "Send #{drafts} for signature", class: "btn-primary" %>
+          <% end %>
+          <p class="hint">Your supervisor sees them in their sign-off queue and can sign many at once, or return any with a note.</p>
+        <% else %>
+          <p class="text-sm text-amber-700 dark:text-amber-300">No supervisors are linked to your account yet; ask your administrator to add one, then send these for signature.</p>
+        <% end %>
+      <% else %>
+        <p class="text-sm"><%= link_to "See the imported entries", work_entries_path(import_id: i.id), class: "link" %></p>
+      <% end %>
+    </div>
+    <div class="card space-y-2 text-sm">
+      <h2 class="h2">Undo</h2>
+      <p class="muted">Removes this import's entries that are still unchanged drafts. Entries you've edited, recorded or sent stay.</p>
+      <%= button_to "Undo import", undo_import_path(i), class: "btn-danger", disabled: drafts.zero?, form: { data: { turbo_confirm: "Delete the #{drafts} draft entries from this import?" } } %>
+    </div>
+  </div>
+  <% if i.problems.any? %>
+    <div class="card mt-6">
+      <h2 class="h2 mb-2">Skipped</h2>
+      <ul class="space-y-1 text-sm"><% i.problems.each do |p| %><li><%= p %></li><% end %></ul>
+      <% if i.skipped_count > i.problems.size %><p class="hint mt-2">…and <%= i.skipped_count - i.problems.size %> more.</p><% end %>
+    </div>
+  <% end %>
+<% else %>
+  <%= form_with model: i, url: import_path(i), method: :patch, class: "space-y-6", data: { turbo: false } do |f| %>
+    <% if i.kind == "csv" %>
+      <div class="card">
+        <h2 class="h2 mb-1">Match the columns</h2>
+        <p class="mb-4 text-sm muted"><%= pluralize(@total, "row") %> found. Choose which column holds each field; date, hours and description are needed. Then update the preview and check it.</p>
+        <% columns = i.csv.headers.each_with_index.map { |h, n| [h.presence || "Column #{n + 1}", n] } %>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <% EntryCsv::FIELDS.each do |field, (label, _)| %>
+            <div>
+              <%= label_tag "mapping_#{field}", "#{label}#{" *" if EntryCsv::REQUIRED.include?(field)}", class: "label" %>
+              <%= select_tag "mapping[#{field}]", options_for_select(columns, i.mapping[field]&.to_i), include_blank: "— not in the file —", id: "mapping_#{field}", class: "input" %>
+            </div>
+          <% end %>
+          <div>
+            <%= label_tag :date_format, "Dates like 03/04/2026 are", class: "label" %>
+            <%= select_tag :date_format, options_for_select(EntryCsv::DATE_FORMATS.invert, i.date_format), class: "input" %>
+          </div>
+        </div>
+        <p class="hint mt-3">Hours can be 1.5, 1:30 or "90 min". Category can be Airframe/Powerplant/General or A/P/G. ACS areas can be codes (A-II-A) or names. A missing category or ATA chapter is suggested from the description.</p>
+        <%= f.button "Update preview", class: "btn mt-4" %>
+      </div>
+    <% else %>
+      <div class="card text-sm">
+        <p><%= pluralize(@total, "entry") %> in this export. They'll come in as drafts; the original signer and status are kept on each entry for reference.</p>
+      </div>
+    <% end %>
+
+    <div class="card overflow-x-auto">
+      <h2 class="h2 mb-2">Preview <span class="text-sm font-normal muted">(first <%= @preview.size %>)</span></h2>
+      <table class="table">
+        <thead><tr><th>Date</th><th>Hours</th><th>Aircraft</th><th>Category · ATA</th><th>Description</th><th>Supervisor</th><th></th></tr></thead>
+        <tbody>
+          <% @preview.each do |attrs, problem| %>
+            <tr class="<%= "bg-red-50 dark:bg-red-950/40" if problem %>">
+              <td class="whitespace-nowrap"><%= attrs[:performed_on] ? l(attrs[:performed_on]) : "—" %></td>
+              <td><%= attrs[:minutes] ? hours(attrs[:minutes] / 60.0) : "—" %></td>
+              <td><%= attrs[:n_number] %></td>
+              <td class="whitespace-nowrap">
+                <%= Faa.categories[attrs[:category]] %><%= " · #{attrs[:ata_chapter]}" if attrs[:ata_chapter] %>
+                <% if Array(attrs.dig(:import_details, "suggested")).any? %><span class="block text-xs text-sky-700 dark:text-sky-300">suggested</span><% end %>
+              </td>
+              <td class="max-w-md"><%= truncate(MarkdownText.plain(attrs[:description].to_s), length: 140) %></td>
+              <td><%= attrs[:supervisor_name] %></td>
+              <td class="text-xs text-red-700 dark:text-red-300"><%= "Skipped: #{problem}" if problem %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+      <%= f.button "Import #{pluralize(@total, i.kind == "csv" ? "row" : "entry")} as drafts", name: "import", value: "1", class: "btn-primary" %>
+    </div>
+  <% end %>
+  <%= button_to "Cancel", import_path(i), method: :delete, class: "btn mt-2" %>
+<% end %>

@@ -1,21 +1,46 @@
-<% content_for :title, "Print logbook" %>
-<h1 class="h1 mb-1">Print logbook</h1>
-<p class="mb-4 text-sm muted">A PDF to print and bring to the FSDO with FAA Form 8610-2. It contains a cover with your statement, a summary against 14 CFR 65.77, a statement page for each supervisor to sign, and every entry with page totals and a column for the supervisor's ink signature beside the electronic one.</p>
-<div class="card max-w-xl">
-  <%= form_with url: export_logbook_path, method: :get, class: "space-y-4", data: { turbo: false } do |f| %>
-    <%= hidden_field_tag :technician_id, @technician.id unless @technician == current_user %>
-    <div class="grid grid-cols-2 gap-3">
-      <div><%= f.label :from, class: "label" %><%= f.date_field :from, class: "input" %></div>
-      <div><%= f.label :to, class: "label" %><%= f.date_field :to, class: "input" %></div>
-    </div>
-    <% if Setting.ink_signatures? %>
-      <p class="text-sm muted">Includes every recorded entry, for your supervisors to sign in ink.</p>
-    <% else %>
-      <label class="flex items-center gap-2 text-sm"><%= f.check_box :include_unsigned, class: "accent-sky-700" %> Include entries still waiting for a signature (to be signed in ink)</label>
+<% content_for :title, "Print & export" %>
+<h1 class="h1 mb-1">Print & export</h1>
+<p class="mb-4 max-w-3xl text-sm muted">The PDF is the logbook to print and bring to the FSDO with FAA Form 8610-2: a cover with your statement, a summary against 14 CFR 65.77, a statement page for each supervisor to sign, and every entry with page totals and a column for the supervisor's ink signature beside the electronic one.</p>
+<div class="grid gap-6 lg:grid-cols-2">
+  <div class="card">
+    <h2 class="h2 mb-3">Logbook PDF and spreadsheet</h2>
+    <%= form_with url: export_logbook_path, method: :get, class: "space-y-4", data: { turbo: false } do |f| %>
+      <%= hidden_field_tag :technician_id, @technician.id unless @technician == current_user %>
+      <div class="grid grid-cols-2 gap-3">
+        <div><%= f.label :from, class: "label" %><%= f.date_field :from, class: "input" %></div>
+        <div><%= f.label :to, class: "label" %><%= f.date_field :to, class: "input" %></div>
+      </div>
+      <div class="grid gap-3 sm:grid-cols-2">
+        <div><%= f.label :category, class: "label" %><%= f.select :category, category_options, { include_blank: "All categories" }, class: "input" %></div>
+        <div>
+          <%= f.label :entries, "Entries", class: "label" %>
+          <% scopes = Setting.ink_signatures? ? LogbooksController::SCOPES.slice("counted", "all") : LogbooksController::SCOPES %>
+          <%= f.select :entries, scopes.map { |k, (label, *)| [Setting.ink_signatures? && k == "counted" ? "Recorded entries" : label, k] }, {}, class: "input" %>
+        </div>
+      </div>
+      <p class="hint">
+        <% if Setting.ink_signatures? %>Recorded entries print for your supervisors to sign in ink.<% else %>Entries awaiting a signature can be signed in ink on the printout.<% end %>
+        The PDF never includes drafts or returned entries; the CSV can.
+      </p>
+      <div class="flex flex-wrap gap-2">
+        <%= f.button "Open PDF", name: "format", value: "pdf", class: "btn-primary", formtarget: "_blank" %>
+        <%= f.button "Download CSV", name: "format", value: "csv", class: "btn" %>
+      </div>
     <% end %>
-    <div class="flex flex-wrap gap-2">
-      <%= f.button "Open PDF", name: "format", value: "pdf", class: "btn-primary", formtarget: "_blank" %>
-      <%= f.button "Download CSV", name: "format", value: "csv", class: "btn" %>
+  </div>
+
+  <div class="space-y-6">
+    <div class="card space-y-3">
+      <h2 class="h2">Full export</h2>
+      <p class="text-sm muted">Everything in <%= @technician == current_user ? "your" : "#{@technician.name}'s" %> logbook as one file (JSON): every entry with its formatting, aircraft, supervisors, certificates and the electronic signature records with their seals. Keep it as a backup, or import it on another AMT Logbook server.</p>
+      <%= link_to "Download full export", export_logbook_path(format: :json, technician_id: (@technician.id unless @technician == current_user)), class: "btn", data: { turbo: false } %>
     </div>
-  <% end %>
+    <% if @technician == current_user && current_user.technician? %>
+      <div class="card space-y-3">
+        <h2 class="h2">Import</h2>
+        <p class="text-sm muted">Bring in entries from a spreadsheet (CSV) or an AMT Logbook export. They come in as drafts for you to check.</p>
+        <%= link_to "Import entries", imports_path, class: "btn" %>
+      </div>
+    <% end %>
+  </div>
 </div>

@@ -1,0 +1,10 @@
+<% if entry.clocking? && (t = entry.timer) %>
+  <div class="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 dark:border-emerald-900 dark:bg-emerald-950/40">
+    <span class="font-mono text-2xl tabular-nums" data-controller="clock" data-clock-start-value="<%= t.running_since ? t.running_since.to_i * 1000 : 0 %>" data-clock-accumulated-value="<%= t.accumulated_seconds %>"><%= duration(t.elapsed_seconds) %></span>
+    <span class="order-last w-full text-sm sm:order-none sm:w-auto sm:flex-1"><%= t.running? ? "Clock running." : "Clock paused." %> Save any time; clocking out sets the hours, then send it to be signed.</span>
+    <div class="ml-auto flex gap-2 sm:ml-0">
+      <%= button_to(t.running? ? "Pause" : "Resume", t.running? ? pause_timer_path(t) : resume_timer_path(t), class: "btn btn-sm") %>
+      <%= button_to "Clock out", stop_timer_path(t), class: "btn-primary btn-sm" %>
+    </div>
+  </div>
+<% end %>

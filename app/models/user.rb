@@ -4,6 +4,7 @@ class User < ApplicationRecord
   has_many :certificates, -> { order(:created_at) }, class_name: "UserCertificate", dependent: :destroy
   has_many :work_entries, dependent: :destroy
   has_many :timers, dependent: :destroy
+  has_many :entry_imports, dependent: :destroy
   has_many :entry_signatures, dependent: :nullify
 
   # Supervisors who can sign my entries, and technicians whose entries I sign.

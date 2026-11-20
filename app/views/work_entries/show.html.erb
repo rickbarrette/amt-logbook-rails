@@ -5,7 +5,8 @@
   <div class="ml-auto flex gap-2">
     <% if e.user == current_user && e.editable? %>
       <%= link_to "Edit", edit_work_entry_path(e), class: "btn" %>
-      <% if Setting.ink_signatures? %>
+      <% if e.clocking? %>
+      <% elsif Setting.ink_signatures? %>
         <% unless e.recorded? %><%= button_to "Record", submit_work_entry_path(e), class: "btn-primary" %><% end %>
       <% elsif e.supervisor %>
         <%= button_to "Send to #{e.supervisor.name}", submit_work_entry_path(e), class: "btn-primary" %>
@@ -14,6 +15,7 @@
     <% end %>
   </div>
 </div>
+<%= render "clock_banner", entry: e if e.user == current_user %>
 <% if e.returned? %><div class="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800 dark:bg-red-900/40 dark:text-red-200"><strong>Returned:</strong> <%= e.returned_reason %></div><% end %>
 
 <div class="grid gap-4 md:grid-cols-3">
@@ -21,7 +23,7 @@
     <%= markdown(e.description) %>
     <dl class="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
       <div><dt class="muted">Technician</dt><dd><%= e.user.name %></dd></div>
-      <div><dt class="muted">Hours</dt><dd><%= hours(e.hours) %></dd></div>
+      <div><dt class="muted">Hours</dt><dd><%= e.clocking? ? "Clock running" : hours(e.hours) %></dd></div>
       <div><dt class="muted">Category</dt><dd><%= e.category_label %></dd></div>
       <div><dt class="muted">Aircraft</dt><dd><%= e.aircraft ? link_to(e.aircraft.to_s, e.aircraft, class: "link") : "—" %></dd></div>
       <div><dt class="muted">ATA</dt><dd><%= e.ata_label || "—" %></dd></div>
@@ -55,3 +57,20 @@
     <% end %>
   </div>
 </div>
+
+<% if e.imported? && (d = e.import_details) %>
+  <div class="card mt-4 text-sm">
+    <h2 class="h2 mb-2">Imported</h2>
+    <p>From <%= d["source"] == "export" ? "an AMT Logbook export" : "a spreadsheet" %><%= " (#{d["file"]})" if d["file"].present? %><%= ", #{l(e.entry_import.imported_at, format: :short)}" if e.entry_import&.imported_at %>.</p>
+    <% if d["aircraft"].present? %><p class="mt-1">Aircraft in the file: <strong><%= d["aircraft"] %></strong> (not a US N-number, so it isn't linked).</p><% end %>
+    <% if Array(d["suggested"]).any? %>
+      <p class="mt-1 text-amber-700 dark:text-amber-300">The file had no <%= d["suggested"].map { _1.humanize(capitalize: false).sub("ata", "ATA").sub("subject areas", "ACS subject areas") }.to_sentence %>; these were suggested from the description. Check them before recording.</p>
+    <% end %>
+    <% if (sig = d["signature"]) %>
+      <p class="mt-1">Signed on the original server by <strong><%= sig["signer_name"] %></strong> (<%= Faa.certificate_short(sig["certificate_kind"]) %> <%= sig["certificate_number"] %>) on <%= sig["signed_at"].to_s.first(10) %><%= sig["intact"] == false ? ", and that signature had already been flagged as changed" : "" %>.</p>
+      <p class="mt-1 muted">Electronic signatures can't move between servers (each server seals its own), so this is a draft here: send it for signature again, or keep the original export as the record of that signature.</p>
+    <% elsif d["original_status"].present? && d["original_status"] != "draft" %>
+      <p class="mt-1 muted">Status on the original server: <%= d["original_status"] %>.</p>
+    <% end %>
+  </div>
+<% end %>

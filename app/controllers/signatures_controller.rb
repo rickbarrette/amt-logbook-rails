@@ -19,11 +19,8 @@ class SignaturesController < ApplicationController
     certificate = current_user.signing_certificates.find { _1.id.to_s == params[:certificate_id].to_s }
     return redirect_to(signatures_path, alert: "Choose at least one entry.") if entries.empty?
     return redirect_to(signatures_path, alert: "Add a current certificate to your profile first.") unless certificate
-    auth_method = sso_confirmed? ? "sso" : "password_totp"
-    if auth_method == "password_totp" && !(current_user.authenticate(params[:password].to_s) && current_user.verify_second_factor(params[:code]))
-      current_user.register_failed_sign_in!
+    auth_method = confirm_identity or
       return redirect_to(signatures_path, alert: "Your password or authenticator code didn't match. Nothing was signed.")
-    end
 
     signed, skipped = [], []
     entries.each do |entry|
@@ -42,13 +39,5 @@ class SignaturesController < ApplicationController
     entry = current_user.entries_to_sign.awaiting_signature.find(params[:id])
     entry.return!(params[:reason])
     redirect_to signatures_path, notice: "Returned to #{entry.user.name}."
-  end
-
-  private
-
-  # Signed in at the SSO provider within the last few minutes, as this user.
-  def sso_confirmed?
-    Sso.enabled? && current_user.sso_linked? &&
-      session[:sso_signed_in_at].to_i > Sso::REAUTH_FOR.ago.to_i
   end
 end
