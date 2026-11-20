@@ -1,5 +1,10 @@
 # What's new
 
+## 2026.11.6
+
+### Fixes
+- The profile page failed to open (error 500) for anyone who signed in more than 10 minutes earlier.
+
 ## 2026.11.5
 
 ### Changes

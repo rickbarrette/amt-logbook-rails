@@ -44,6 +44,7 @@ class ApplicationController < ActionController::Base
     Sso.enabled? && current_user.sso_linked? &&
       session[:sso_signed_in_at].to_i > Sso::REAUTH_FOR.ago.to_i
   end
+  helper_method :sso_confirmed?
 
   # Before something sensitive: a fresh SSO sign-in or passkey confirmation,
   # or password plus authenticator code from the form. Returns how, or nil.

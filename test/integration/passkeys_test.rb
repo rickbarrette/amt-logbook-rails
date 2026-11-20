@@ -59,6 +59,9 @@ class PasskeysTest < ActionDispatch::IntegrationTest
     user = users(:tech)
     sign_in_as user
     Current.session.update_columns(created_at: 1.hour.ago)
+    get profile_path
+    assert_response :success
+    assert_select "#passkeys input[type=password]", 1, "the profile asks for the password"
     add_passkey
     assert_response :forbidden
     add_passkey(password: PASSWORD)
