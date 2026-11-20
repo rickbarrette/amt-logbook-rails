@@ -45,6 +45,7 @@ Rails.application.routes.draw do
   end
   resources :work_entries do
     post :submit, on: :member
+    post :bulk, on: :collection
   end
   resources :timers, only: %i[index create update destroy] do
     member do

@@ -75,6 +75,23 @@ class WorkEntriesController < ApplicationController
     end
   end
 
+  # Several entries at once (Entries list). Export works on any logbook you
+  # can see; everything else only on your own entries.
+  def bulk
+    ids = Array(params[:entry_ids]).map(&:to_i).uniq
+    back = params[:return_to].to_s.start_with?("/work_entries") ? params[:return_to] : work_entries_path
+    return redirect_to(back, alert: "Tick at least one entry first.") if ids.empty?
+    return bulk_export(ids) if params[:bulk_action].to_s.start_with?("export_")
+    return redirect_to(back, alert: "Choose what to do with them.") unless EntryBulkAction::ACTIONS.key?(params[:bulk_action])
+
+    entries = current_user.work_entries.where(id: ids).includes(:timer, :signature).to_a
+    result = EntryBulkAction.new(current_user, entries, params[:bulk_action], params.permit(
+      :supervisor_id, :supervisor_name, :supervisor_certificate, :category, :ata_chapter, :location, :reference, add_subject_area: []
+    )).call
+    flash[result.done.positive? ? :notice : :alert] = result.notice
+    redirect_to back, status: :see_other
+  end
+
   def destroy
     if @entry.signed?
       redirect_to @entry, alert: "Signed entries can't be deleted."
@@ -85,6 +102,20 @@ class WorkEntriesController < ApplicationController
   end
 
   private
+
+  def bulk_export(ids)
+    technician = visible_technician(params[:technician_id])
+    entries = technician.work_entries.where(id: ids).includes(:aircraft, :signature, :supervisor).chronological
+    name = "amt-logbook-#{technician.name.parameterize}-selected-#{Date.current.iso8601}"
+    if params[:bulk_action] == "export_csv"
+      send_data LogbookCsv.new(entries).to_csv, filename: "#{name}.csv", type: "text/csv"
+    else
+      printable = entries.where(status: LogbooksController::PRINTABLE).to_a
+      return redirect_to(work_entries_path, alert: "None of those can be printed yet (drafts and returned entries aren't).") if printable.empty?
+      send_data LogbookPdf.new(technician, printable, report: ExperienceReport.new(technician)).render,
+                filename: "#{name}.pdf", type: "application/pdf", disposition: "attachment"
+    end
+  end
 
   # Your own entries, or ones you supervise / administer (read-only).
   def set_entry

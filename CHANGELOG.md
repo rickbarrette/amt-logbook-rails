@@ -1,5 +1,10 @@
 # What's new
 
+## 2026.11.7
+
+### Changes
+- **Bulk actions** on the Entries list: tick entries (or the whole page) and send them for signature (or record them in ink mode), set the supervisor, edit category, ATA chapter, location, work order or add an ACS area, delete them, or export just those as PDF or CSV. Signed entries, ones waiting for a signature, and ones with the clock still running are left alone, and the message says what was skipped and why.
+
 ## 2026.11.6
 
 ### Fixes

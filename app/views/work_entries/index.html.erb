@@ -19,7 +19,46 @@
   <%= f.text_field :n_number, value: params[:n_number], placeholder: "N-number", class: "input w-32 uppercase placeholder:normal-case" %>
   <%= f.submit "Filter", class: "btn" %>
 <% end %>
-<div class="card overflow-x-auto"><%= render "table", entries: @entries %></div>
+<% own = @technician == current_user %>
+<div data-controller="bulk">
+  <% if @entries.any? %>
+    <%= form_with url: bulk_work_entries_path, id: "bulk-form", data: { turbo: false, action: "submit->bulk#confirm", bulk_target: "bar" },
+                  class: "mb-3 flex flex-wrap items-end gap-2 rounded-lg border border-slate-200 bg-white p-3 transition-opacity dark:border-slate-700 dark:bg-slate-800/60" do |f| %>
+      <%= hidden_field_tag :technician_id, @technician.id unless own %>
+      <%= hidden_field_tag :return_to, request.fullpath %>
+      <span class="self-center text-sm font-medium" data-bulk-target="count">0 selected</span>
+      <div>
+        <%= label_tag :bulk_action, "Action", class: "sr-only" %>
+        <% actions = own ? EntryBulkAction::ACTIONS.reject { |k, _| k == (Setting.ink_signatures? ? "submit" : "record") }.invert.to_a : [] %>
+        <%= select_tag :bulk_action, options_for_select(actions + [ [ "Export PDF", "export_pdf" ], [ "Export CSV", "export_csv" ] ]),
+                       include_blank: "Choose an action…", class: "input w-auto", data: { bulk_target: "action", action: "bulk#update" } %>
+      </div>
+      <% if own %>
+        <% if Setting.ink_signatures? %>
+          <div class="flex w-full flex-wrap gap-2 sm:w-auto" data-bulk-target="section" data-for="supervisor" hidden>
+            <%= text_field_tag :supervisor_name, nil, placeholder: "Supervisor's name", list: "bulk-supervisor-names", class: "input w-full sm:w-48" %>
+            <%= text_field_tag :supervisor_certificate, nil, placeholder: "Certificate, e.g. A&P 1234567", class: "input w-full sm:w-56" %>
+            <datalist id="bulk-supervisor-names"><% current_user.work_entries.where.not(supervisor_name: nil).distinct.pluck(:supervisor_name).each do |n| %><option value="<%= n %>"><% end %></datalist>
+          </div>
+        <% else %>
+          <div class="w-full sm:w-auto" data-bulk-target="section" data-for="submit supervisor" hidden>
+            <%= select_tag :supervisor_id, options_for_select(current_user.supervisors.ordered.map { [_1.name, _1.id] }), include_blank: "Supervisor…", class: "input w-full sm:w-auto" %>
+          </div>
+        <% end %>
+        <div class="flex w-full flex-wrap gap-2 sm:w-auto" data-bulk-target="section" data-for="fields" hidden>
+          <%= select_tag :category, options_for_select(category_options), include_blank: "Category: keep", class: "input w-full sm:w-auto" %>
+          <%= select_tag :ata_chapter, options_for_select(ata_options), include_blank: "ATA: keep", class: "input w-full sm:w-44" %>
+          <%= text_field_tag :location, nil, placeholder: "Location: keep", class: "input w-full sm:w-36" %>
+          <%= text_field_tag :reference, nil, placeholder: "Work order: keep", class: "input w-full sm:w-40" %>
+          <%= select_tag "add_subject_area[]", options_for_select(Faa.subject_areas.map { |code, label| ["#{Faa.subject_area_section(code).capitalize}: #{label}", code] }),
+                         include_blank: "Add ACS area…", class: "input w-full sm:w-56" %>
+        </div>
+      <% end %>
+      <button type="submit" class="btn-primary" data-bulk-target="apply" disabled>Apply</button>
+    <% end %>
+  <% end %>
+  <div class="card overflow-x-auto"><%= render "table", entries: @entries, selectable: true %></div>
+</div>
 <div class="mt-4 flex justify-between">
   <%= link_to("← Newer", url_for(request.query_parameters.merge(page: @page - 1)), class: "btn btn-sm") if @page > 1 %>
   <%= link_to("Older →", url_for(request.query_parameters.merge(page: @page + 1)), class: "btn btn-sm ml-auto") if @more %>
