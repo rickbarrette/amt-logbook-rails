@@ -1,5 +1,10 @@
 # What's new
 
+## 2026.11.8
+
+### Changes
+- **Previous and Next** on each entry: step through the logbook by date without going back to the list (the ← and → keys work too).
+
 ## 2026.11.7
 
 ### Changes

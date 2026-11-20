@@ -16,6 +16,8 @@ class WorkEntriesController < ApplicationController
   end
 
   def show
+    @previous = @entry.previous_entry
+    @next = @entry.next_entry
   end
 
   def new

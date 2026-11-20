@@ -66,6 +66,18 @@ class WorkEntry < ApplicationRecord
   end
 
   def imported? = import_details.present?
+
+  # The technician's entry just before / after this one, by date (then by
+  # when it was added, for entries on the same day).
+  def previous_entry
+    user.work_entries.where("performed_on < :d OR (performed_on = :d AND work_entries.id < :id)", d: performed_on, id:)
+        .order(performed_on: :desc, id: :desc).first
+  end
+
+  def next_entry
+    user.work_entries.where("performed_on > :d OR (performed_on = :d AND work_entries.id > :id)", d: performed_on, id:)
+        .order(:performed_on, :id).first
+  end
   # Its timer is still running or paused: hours aren't known yet.
   def clocking? = timer.present? && !timer.stopped?
   def category_label = Faa.categories[category]

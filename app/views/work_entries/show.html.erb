@@ -15,6 +15,15 @@
     <% end %>
   </div>
 </div>
+<nav class="mb-4 flex items-center justify-between gap-2 text-sm" aria-label="Entries" data-controller="keynav">
+  <% if @previous %>
+    <%= link_to work_entry_path(@previous), class: "btn btn-sm", rel: "prev", title: "Earlier entry (← key)", data: { keynav_target: "previous" } do %>← Previous <span class="muted"><%= l(@previous.performed_on, format: :short) %></span><% end %>
+  <% else %><span></span><% end %>
+  <%= link_to "All entries", work_entries_path(technician_id: (e.user_id unless e.user == current_user)), class: "link" %>
+  <% if @next %>
+    <%= link_to work_entry_path(@next), class: "btn btn-sm", rel: "next", title: "Later entry (→ key)", data: { keynav_target: "next" } do %><span class="muted"><%= l(@next.performed_on, format: :short) %></span> Next →<% end %>
+  <% else %><span></span><% end %>
+</nav>
 <%= render "clock_banner", entry: e if e.user == current_user %>
 <% if e.returned? %><div class="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800 dark:bg-red-900/40 dark:text-red-200"><strong>Returned:</strong> <%= e.returned_reason %></div><% end %>
 

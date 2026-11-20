@@ -114,6 +114,23 @@ class EntriesTest < ActionDispatch::IntegrationTest
     assert entry.reload.submitted?
   end
 
+  test "previous and next entries, by date, within one technician's logbook" do
+    tech = users(:tech)
+    a = tech.work_entries.create!(performed_on: Date.current - 30, minutes: 60, category: "general", description: "First")
+    b = tech.work_entries.create!(performed_on: Date.current - 29, minutes: 60, category: "general", description: "Second")
+    c = tech.work_entries.create!(performed_on: Date.current - 29, minutes: 60, category: "general", description: "Same day, added later")
+    users(:other_tech).work_entries.create!(performed_on: Date.current - 29, minutes: 60, category: "general", description: "Tom's")
+    assert_equal [ a, c ], [ b.previous_entry, b.next_entry ]
+    assert_equal b, c.previous_entry
+    sign_in_as tech
+    get work_entry_path(b)
+    assert_select "a[rel=prev][href=?]", work_entry_path(a)
+    assert_select "a[rel=next][href=?]", work_entry_path(c)
+    first = tech.work_entries.order(:performed_on, :id).first
+    get work_entry_path(first)
+    assert_select "a[rel=prev]", 0
+  end
+
   test "printable logbook PDF and CSV" do
     signed_entry
     get export_logbook_path(format: :pdf, include_unsigned: "1")
